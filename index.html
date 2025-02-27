@@ -18,6 +18,13 @@
       color: #2c3e50;
       margin-bottom: 10px;
     }
+    /* Contenedor en dos columnas usando flexbox */
+    .link-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
     a {
       display: inline-block;
       font-size: 18px;
@@ -36,8 +43,13 @@
 </head>
 <body>
   <h1>Chess Freaks</h1>
-  <p>
-    <a href="Juegodelcaballo.html">Ir a Juego del Caballo</a>
-  </p>
+  <div class="link-container">
+    <div>
+      <a href="Juegodelcaballo.html">Ir a Juego del Caballo</a>
+    </div>
+    <div>
+      <a href="https://chatgpt.com/g/g-67bd8e4292f881918332bfbc5f622fea-ajedrez-a-la-ciega-blindfold-chess" target="_blank">GPT A la ciega</a>
+    </div>
+  </div>
 </body>
 </html>
