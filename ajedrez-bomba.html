@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El ajedrez es la bomba</title>
+  <style>
+    /* Estilos generales basados en Juegodelcaballo.html */
+    body {
+      font-family: 'Noto Sans', Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+      background-color: #f5f5f5;
+      color: #2c2c2c;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    /* Enlace a índice con el mismo formato que los botones */
+    a.index-link {
+      display: inline-block;
+      padding: 8px 12px;
+      margin: 5px;
+      border-radius: 5px;
+      background-color: #4e8bb0;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    a.index-link:hover {
+      background-color: #3a6d8c;
+    }
+    .instructions {
+      background-color: #fff;
+      padding: 12px;
+      border-radius: 5px;
+      margin-top: 20px;
+      text-align: left;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 14px;
+    }
+    .board-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    /* Tablero similar al juego del caballo */
+    .chessboard {
+      display: block;
+      border: 2px solid #404040;
+      width: 400px;
+      height: 400px;
+      margin: 20px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      position: relative;
+      border-radius: 6px;
+    }
+    .row {
+      display: flex;
+      height: 12.5%;
+    }
+    .cell {
+      width: 12.5%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .white {
+      background-color: #f0d9b5;
+    }
+    .black {
+      background-color: #b58863;
+    }
+    /* Imágenes de piezas */
+    .piece {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      z-index: 2;
+    }
+    /* Banderín del objetivo (emoji) */
+    .target-flag {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      z-index: 1;
+    }
+    /* Las bombas se muestran con tamaño similar a las piezas */
+    .bomb-revealed {
+      background-color: #ff6666;
+      font-size: 40px;
+    }
+    /* Selector de pieza con imágenes */
+    .piece-selector {
+      margin: 10px 0;
+    }
+    .piece-option {
+      display: inline-block;
+      margin: 0 5px;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .piece-option.selected {
+      border-color: #4e8bb0;
+      background-color: #e7f5e7;
+    }
+    /* Selector de dificultad */
+    .difficulty-selector {
+      margin: 10px 0;
+    }
+    select#difficulty {
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    /* Botones y controles */
+    .controls {
+      margin: 10px 0;
+    }
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4e8bb0;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #3a6d8c;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 5px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 16px;
+    }
+    /* Etiquetas de coordenadas (opcional) */
+    .file-label, .rank-label {
+      position: absolute;
+      font-size: 12px;
+      color: #666;
+    }
+    .file-label {
+      right: 2px;
+      bottom: 2px;
+    }
+    .rank-label {
+      left: 2px;
+      top: 2px;
+    }
+    /* Overlay para mensajes (jugada ilegal o cuenta atrás) */
+    .illegal-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255,255,255,0.9);
+      padding: 10px 20px;
+      border: 2px solid #C33;
+      border-radius: 5px;
+      font-size: 18px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <h1>El ajedrez es la bomba</h1>
+  <p><a class="index-link" href="index.html">Volver a índice</a></p>
+  
+  <!-- Selector de pieza -->
+  <div class="piece-selector" id="piece-selector">
+    <div class="piece-option" data-piece="king">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg" alt="Rey" class="piece">
+      <div>Rey</div>
+    </div>
+    <div class="piece-option" data-piece="queen">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg" alt="Dama" class="piece">
+      <div>Dama</div>
+    </div>
+    <div class="piece-option" data-piece="rook">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg" alt="Torre" class="piece">
+      <div>Torre</div>
+    </div>
+    <div class="piece-option" data-piece="bishop">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg" alt="Alfil" class="piece">
+      <div>Alfil</div>
+    </div>
+    <div class="piece-option" data-piece="knight">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg" alt="Caballo" class="piece">
+      <div>Caballo</div>
+    </div>
+  </div>
+  
+  <!-- Selector de dificultad -->
+  <div class="difficulty-selector">
+    <label for="difficulty">Dificultad:</label>
+    <select id="difficulty">
+      <option value="facil">Fácil (5 a 10 bombas)</option>
+      <option value="algo">Algo difícil (10 a 15 bombas)</option>
+      <option value="muy">Muy difícil (15 a 20 bombas)</option>
+    </select>
+  </div>
+  
+  <!-- Contenedor del tablero -->
+  <div class="board-container">
+    <div id="chessboard" class="chessboard"></div>
+  </div>
+  
+  <!-- Controles (incluye botón "Mostrar Bombas" para cuando se gana) -->
+  <div class="controls">
+    <button id="restart">Reiniciar juego</button>
+    <button id="showBombs" style="display: none;">Mostrar Bombas</button>
+  </div>
+  
+  <!-- Estado del juego -->
+  <div id="status" class="status">
+    <p>¡Bienvenido al juego! Selecciona una pieza, elige la dificultad y pulsa "Reiniciar juego" para comenzar.</p>
+  </div>
+  
+  <!-- Instrucciones -->
+  <div class="instructions">
+    <p><strong>Instrucciones:</strong></p>
+    <ol>
+      <li>Selecciona una pieza de ajedrez para jugar.</li>
+      <li>Elige la dificultad: Fácil (5 a 10 bombas), Algo difícil (10 a 15 bombas) o Muy difícil (15 a 20 bombas).</li>
+      <li>Mueve la pieza desde su posición inicial hasta la celda del objetivo (esta celda muestra el banderín 🚩 desde el inicio) siguiendo las reglas del ajedrez.</li>
+      <li>En el tablero hay un número aleatorio de bombas según la dificultad. Si caes en una bomba o pasas por ella, se revelarán (solo las que se han pisado) y aparecerá una cuenta atrás de 3 segundos (mostrada con el mismo formato que el mensaje de jugada ilegal) antes de reiniciar la posición.</li>
+      <li>Cuando llegues al objetivo, la pieza y el banderín aparecerán juntos en la celda.</li>
+      <li>Si ganas, se mostrará el botón "Mostrar Bombas" para revelar todas las bombas del tablero.</li>
+    </ol>
+  </div>
+  
+  <script>
+    // Arrays para notación algebraica
+    const files = ['a','b','c','d','e','f','g','h'];
+    const ranks = ['8','7','6','5','4','3','2','1'];
+    
+    // Funciones de conversión
+    function posToId(pos) {
+      return files[pos.col] + ranks[pos.row];
+    }
+    function idToPos(id) {
+      return {
+        col: files.indexOf(id.charAt(0)),
+        row: ranks.indexOf(id.charAt(1))
+      };
+    }
+    
+    // Estado del juego (se reiniciará triggeredBombs al empezar un nuevo juego)
+    let gameState = {
+      selectedPiece: null,
+      currentPosition: null,
+      targetPosition: null,
+      bombPositions: [],
+      triggeredBombs: [],
+      initialPosition: null,
+      gameOver: false,
+      won: false,
+      dragging: false,
+      validMoves: []
+    };
+    
+    // Definiciones de piezas (imágenes SVG)
+    const pieces = {
+      king: { src: "https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg", name: "Rey" },
+      queen: { src: "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg", name: "Dama" },
+      rook: { src: "https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg", name: "Torre" },
+      bishop: { src: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg", name: "Alfil" },
+      knight: { src: "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg", name: "Caballo" }
+    };
+    
+    // Referencias a elementos
+    const pieceSelector = document.getElementById('piece-selector');
+    const difficultySelect = document.getElementById('difficulty');
+    const chessboard = document.getElementById('chessboard');
+    const restartButton = document.getElementById('restart');
+    const showBombsButton = document.getElementById('showBombs');
+    const statusElement = document.getElementById('status');
+    
+    // Inicializar selector de pieza
+    const pieceOptions = document.querySelectorAll('.piece-option');
+    pieceOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        pieceOptions.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+        const pieceType = this.dataset.piece;
+        gameState.selectedPiece = { ...pieces[pieceType], type: pieceType };
+        statusElement.innerHTML = `<p>Selecciona "Reiniciar juego" para comenzar moviendo el ${gameState.selectedPiece.name}.</p>`;
+      });
+    });
+    // Selección por defecto
+    pieceOptions[0].click();
+    
+    // Crear el tablero (estructura similar a Juegodelcaballo)
+    function createChessboard() {
+      chessboard.innerHTML = "";
+      for (let i = 0; i < 8; i++) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "row";
+        for (let j = 0; j < 8; j++) {
+          const cell = document.createElement("div");
+          cell.className = "cell " + (((i + j) % 2 === 0) ? "white" : "black");
+          cell.id = files[j] + ranks[i];
+          // Etiquetas de coordenadas (opcional)
+          if (i === 7) {
+            const fileLabel = document.createElement("span");
+            fileLabel.className = "file-label";
+            fileLabel.textContent = files[j];
+            cell.appendChild(fileLabel);
+          }
+          if (j === 0) {
+            const rankLabel = document.createElement("span");
+            rankLabel.className = "rank-label";
+            rankLabel.textContent = ranks[i];
+            cell.appendChild(rankLabel);
+          }
+          // Eventos para clic y arrastrar
+          cell.addEventListener('click', handleCellClick);
+          cell.addEventListener('mousedown', handleDragStart);
+          cell.addEventListener('mouseup', handleDragEnd);
+          cell.addEventListener('dragover', e => e.preventDefault());
+          cell.addEventListener('dragenter', e => e.preventDefault());
+          rowDiv.appendChild(cell);
+        }
+        chessboard.appendChild(rowDiv);
+      }
+    }
+    
+    createChessboard();
+    
+    // Posiciones aleatorias y comprobación
+    function getRandomPosition() {
+      return {
+        row: Math.floor(Math.random() * 8),
+        col: Math.floor(Math.random() * 8)
+      };
+    }
+    function isPositionOccupied(pos) {
+      if (gameState.currentPosition &&
+          pos.row === gameState.currentPosition.row &&
+          pos.col === gameState.currentPosition.col) {
+        return true;
+      }
+      return gameState.bombPositions.some(bomb =>
+        bomb.row === pos.row && bomb.col === pos.col
+      );
+    }
+    
+    // Inicializa el juego (al reiniciar se borra triggeredBombs para que las bombas no aparezcan)
+    function initializeBoard() {
+      const currentPiece = gameState.selectedPiece;
+      gameState = {
+        selectedPiece: currentPiece,
+        currentPosition: null,
+        targetPosition: null,
+        bombPositions: [],
+        triggeredBombs: [],  // se reinicia aquí
+        initialPosition: null,
+        gameOver: false,
+        won: false,
+        dragging: false,
+        validMoves: []
+      };
+      // Posición inicial aleatoria
+      gameState.currentPosition = getRandomPosition();
+      gameState.initialPosition = { ...gameState.currentPosition };
+      // Posición objetivo: si es alfil, forzar mismo color; siempre se muestra el banderín desde el inicio.
+      if (gameState.selectedPiece.type === 'bishop') {
+        do {
+          gameState.targetPosition = getRandomPosition();
+        } while (
+          (gameState.targetPosition.row === gameState.currentPosition.row &&
+           gameState.targetPosition.col === gameState.currentPosition.col) ||
+          (((gameState.targetPosition.row + gameState.targetPosition.col) % 2) !== ((gameState.currentPosition.row + gameState.currentPosition.col) % 2))
+        );
+      } else {
+        do {
+          gameState.targetPosition = getRandomPosition();
+        } while (
+          gameState.targetPosition.row === gameState.currentPosition.row &&
+          gameState.targetPosition.col === gameState.currentPosition.col
+        );
+      }
+      // Determinar la cantidad de bombas según la dificultad
+      let bombCount;
+      const difficulty = difficultySelect.value;
+      if (difficulty === "facil") {
+        bombCount = Math.floor(Math.random() * 6) + 5; // 5 a 10
+      } else if (difficulty === "algo") {
+        bombCount = Math.floor(Math.random() * 6) + 10; // 10 a 15
+      } else if (difficulty === "muy") {
+        bombCount = Math.floor(Math.random() * 6) + 15; // 15 a 20
+      }
+      // Colocar bombas (asegurando que no coincidan con la celda de destino)
+      for (let i = 0; i < bombCount; i++) {
+        let bombPos;
+        do {
+          bombPos = getRandomPosition();
+        } while (
+          isPositionOccupied(bombPos) ||
+          (bombPos.row === gameState.targetPosition.row && bombPos.col === gameState.targetPosition.col)
+        );
+        gameState.bombPositions.push(bombPos);
+      }
+      updateBoard();
+      statusElement.innerHTML = `<p>Mueve el ${gameState.selectedPiece.name} hasta la casilla del banderín.</p>`;
+      showBombsButton.style.display = "none";
+    }
+    
+    // Actualiza el tablero: coloca la pieza, el objetivo (con banderín) y muestra las bombas pisadas
+    function updateBoard() {
+      document.querySelectorAll(".cell").forEach(cell => {
+        cell.classList.remove("selected", "bomb-revealed");
+        cell.textContent = "";
+        cell.querySelectorAll("img, span.target-flag").forEach(el => el.remove());
+      });
+      // Colocar el objetivo: la celda de llegada siempre muestra el banderín (emoji)
+      const targetCell = document.getElementById(posToId(gameState.targetPosition));
+      if (targetCell) {
+        targetCell.classList.add("target");
+        const flag = document.createElement("span");
+        flag.className = "target-flag";
+        flag.textContent = "🚩";
+        targetCell.appendChild(flag);
+      }
+      // Colocar la pieza en la posición actual
+      const currentCell = document.getElementById(posToId(gameState.currentPosition));
+      if (currentCell) {
+        currentCell.classList.add("selected");
+        const pieceImg = document.createElement("img");
+        pieceImg.className = "piece";
+        pieceImg.src = gameState.selectedPiece.src;
+        pieceImg.alt = gameState.selectedPiece.name;
+        currentCell.appendChild(pieceImg);
+        currentCell.setAttribute('draggable', 'true');
+      }
+      // Mostrar las bombas pisadas
+      renderTriggeredBombs();
+    }
+    
+    function renderTriggeredBombs() {
+      gameState.triggeredBombs.forEach(bomb => {
+        const cell = document.getElementById(posToId(bomb));
+        if (cell && !cell.querySelector(".bomb-revealed")) {
+          cell.classList.add("bomb-revealed");
+          cell.textContent = "💣";
+        }
+      });
+    }
+    
+    // Calcula los movimientos válidos según la pieza
+    function getValidMoves(position, pieceType) {
+      const moves = [];
+      switch(pieceType) {
+        case 'king':
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const newRow = position.row + dr;
+              const newCol = position.col + dc;
+              if (isValidPosition(newRow, newCol)) {
+                moves.push({row: newRow, col: newCol});
+              }
+            }
+          }
+          break;
+        case 'queen':
+          addStraightMoves(position, moves);
+          addDiagonalMoves(position, moves);
+          break;
+        case 'rook':
+          addStraightMoves(position, moves);
+          break;
+        case 'bishop':
+          addDiagonalMoves(position, moves);
+          break;
+        case 'knight':
+          const offsets = [
+            {row: -2, col: -1}, {row: -2, col: 1},
+            {row: -1, col: -2}, {row: -1, col: 2},
+            {row: 1, col: -2}, {row: 1, col: 2},
+            {row: 2, col: -1}, {row: 2, col: 1}
+          ];
+          offsets.forEach(offset => {
+            const newRow = position.row + offset.row;
+            const newCol = position.col + offset.col;
+            if (isValidPosition(newRow, newCol)) {
+              moves.push({row: newRow, col: newCol});
+            }
+          });
+          break;
+      }
+      return moves;
+    }
+    
+    function addStraightMoves(position, moves) {
+      for (let col = 0; col < 8; col++) {
+        if (col !== position.col) {
+          moves.push({row: position.row, col: col});
+        }
+      }
+      for (let row = 0; row < 8; row++) {
+        if (row !== position.row) {
+          moves.push({row: row, col: position.col});
+        }
+      }
+    }
+    
+    function addDiagonalMoves(position, moves) {
+      for (let i = 1; i < 8; i++) {
+        const newRow = position.row - i;
+        const newCol = position.col - i;
+        if (isValidPosition(newRow, newCol)) {
+          moves.push({row: newRow, col: newCol});
+        } else break;
+      }
+      for (let i = 1; i < 8; i++) {
+        const newRow = position.row - i;
+        const newCol = position.col + i;
+        if (isValidPosition(newRow, newCol)) {
+          moves.push({row: newRow, col: newCol});
+        } else break;
+      }
+      for (let i = 1; i < 8; i++) {
+        const newRow = position.row + i;
+        const newCol = position.col - i;
+        if (isValidPosition(newRow, newCol)) {
+          moves.push({row: newRow, col: newCol});
+        } else break;
+      }
+      for (let i = 1; i < 8; i++) {
+        const newRow = position.row + i;
+        const newCol = position.col + i;
+        if (isValidPosition(newRow, newCol)) {
+          moves.push({row: newRow, col: newCol});
+        } else break;
+      }
+    }
+    
+    function isValidPosition(row, col) {
+      return row >= 0 && row < 8 && col >= 0 && col < 8;
+    }
+    
+    // Manejo del clic en una celda
+    function handleCellClick(e) {
+      if (gameState.gameOver || gameState.dragging) return;
+      const cellId = e.currentTarget.id;
+      const pos = idToPos(cellId);
+      tryMovePiece(pos.row, pos.col);
+    }
+    
+    // Intenta mover la pieza a (row, col)
+    function tryMovePiece(row, col) {
+      const validMoves = getValidMoves(gameState.currentPosition, gameState.selectedPiece.type);
+      const isValid = validMoves.some(move => move.row === row && move.col === col);
+      if (isValid) {
+        // Para movimientos lineales/diagonales, comprobar el trayecto en busca de bombas
+        const pieceType = gameState.selectedPiece.type;
+        if (pieceType === 'queen' || pieceType === 'rook' || pieceType === 'bishop' || pieceType === 'king') {
+          let dx = col - gameState.currentPosition.col;
+          let dy = row - gameState.currentPosition.row;
+          if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) {
+            const path = computePathCells(gameState.currentPosition, {row, col});
+            // Agregar todas las bombas que estén en el trayecto (si aún no se han marcado)
+            const bombsOnPath = path.filter(cell =>
+              gameState.bombPositions.some(bomb =>
+                bomb.row === cell.row && bomb.col === cell.col
+              )
+            );
+            bombsOnPath.forEach(bomb => {
+              if (!gameState.triggeredBombs.some(b => b.row === bomb.row && b.col === bomb.col)) {
+                gameState.triggeredBombs.push(bomb);
+              }
+            });
+            if (bombsOnPath.length > 0) {
+              triggerBomb();
+              return;
+            }
+          }
+        }
+        // Mover la pieza
+        gameState.currentPosition = {row, col};
+        // Si cae directamente en una bomba, agregarla a triggeredBombs (si aún no está)
+        const hitBomb = gameState.bombPositions.find(bomb =>
+          bomb.row === row && bomb.col === col
+        );
+        if (hitBomb) {
+          if (!gameState.triggeredBombs.some(b => b.row === hitBomb.row && b.col === hitBomb.col)) {
+            gameState.triggeredBombs.push(hitBomb);
+          }
+          triggerBomb();
+          return;
+        }
+        // Si llega al objetivo, la partida se gana: se muestran juntos la pieza y el banderín y se muestra el botón "Mostrar Bombas"
+        if (row === gameState.targetPosition.row && col === gameState.targetPosition.col) {
+          gameState.gameOver = true;
+          gameState.won = true;
+          updateBoard();
+          statusElement.innerHTML = '<p>¡Felicidades! Has llegado al objetivo. ¡Has ganado!</p>';
+          showBombsButton.style.display = "inline-block";
+          return;
+        }
+        updateBoard();
+      } else {
+        showIllegalMoveMessage();
+      }
+    }
+    
+    // Calcula las celdas del trayecto (incluyendo destino)
+    function computePathCells(start, end) {
+      const path = [];
+      const dx = end.col - start.col;
+      const dy = end.row - start.row;
+      const steps = Math.max(Math.abs(dx), Math.abs(dy));
+      const stepCol = dx === 0 ? 0 : dx / steps;
+      const stepRow = dy === 0 ? 0 : dy / steps;
+      for (let i = 1; i <= steps; i++) {
+        path.push({ row: start.row + stepRow * i, col: start.col + stepCol * i });
+      }
+      return path;
+    }
+    
+    // Muestra mensaje de jugada ilegal (overlay en el tablero)
+    function showIllegalMoveMessage() {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "illegal-message";
+      msgDiv.textContent = "Jugada ilegal";
+      chessboard.appendChild(msgDiv);
+      setTimeout(() => {
+        msgDiv.remove();
+      }, 2000);
+    }
+    
+    // Función para cuando se pisa una bomba: revela las bombas pisadas, muestra overlay con cuenta atrás y luego reinicia la posición (conservando las bombas pisadas)
+    function triggerBomb() {
+      renderTriggeredBombs();
+      const overlay = document.createElement("div");
+      overlay.className = "illegal-message";
+      overlay.textContent = "Reiniciando en 3...";
+      chessboard.appendChild(overlay);
+      let count = 3;
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          overlay.textContent = "Reiniciando en " + count + "...";
+        } else {
+          clearInterval(interval);
+          overlay.remove();
+          if (gameState.won) return;
+          // Reiniciar la posición sin borrar las bombas pisadas (se mantienen en esta partida)
+          gameState.currentPosition = { ...gameState.initialPosition };
+          updateBoard();
+          statusElement.innerHTML = `<p>Vuelve a intentarlo. Mueve el ${gameState.selectedPiece.name} hasta la casilla del banderín.</p>`;
+        }
+      }, 1000);
+    }
+    
+    // Renderiza las bombas pisadas (triggeredBombs) en el tablero
+    function renderTriggeredBombs() {
+      gameState.triggeredBombs.forEach(bomb => {
+        const cell = document.getElementById(posToId(bomb));
+        if (cell && !cell.querySelector(".bomb-revealed")) {
+          cell.classList.add("bomb-revealed");
+          cell.textContent = "💣";
+        }
+      });
+    }
+    
+    // Drag and drop de la pieza
+    function handleDragStart(e) {
+      if (gameState.gameOver) return;
+      const cellId = e.currentTarget.id;
+      const pos = idToPos(cellId);
+      if (pos.row === gameState.currentPosition.row && pos.col === gameState.currentPosition.col) {
+        gameState.dragging = true;
+        e.dataTransfer.setData("text/plain", cellId);
+        document.addEventListener("mousemove", handleMouseMove);
+      } else {
+        e.preventDefault();
+      }
+    }
+    function handleMouseMove(e) { /* Opcional: feedback visual */ }
+    function handleDragEnd(e) {
+      if (!gameState.dragging) return;
+      document.removeEventListener("mousemove", handleMouseMove);
+      const elem = document.elementFromPoint(e.clientX, e.clientY);
+      if (elem && elem.classList.contains("cell")) {
+        const pos = idToPos(elem.id);
+        tryMovePiece(pos.row, pos.col);
+      }
+      gameState.dragging = false;
+    }
+    
+    restartButton.addEventListener("click", initializeBoard);
+    
+    // Botón "Mostrar Bombas": revela todas las bombas (todas las posiciones en bombPositions)
+    showBombsButton.addEventListener("click", () => {
+      gameState.bombPositions.forEach(bomb => {
+        const cell = document.getElementById(posToId(bomb));
+        if (cell && !cell.querySelector(".bomb-revealed")) {
+          cell.classList.add("bomb-revealed");
+          cell.textContent = "💣";
+        }
+      });
+      showBombsButton.style.display = "none";
+    });
+    
+    // Inicia el juego al cargar la página
+    initializeBoard();
+  </script>
+</body>
+</html>
