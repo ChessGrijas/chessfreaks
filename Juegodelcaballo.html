@@ -18,6 +18,22 @@
           color: #2c3e50;
           margin-bottom: 10px;
       }
+      /* Botón de Página de inicio */
+      .home-button {
+          display: inline-block;
+          font-size: 18px;
+          color: #4e8bb0;
+          text-decoration: none;
+          border: 1px solid #4e8bb0;
+          padding: 10px 20px;
+          border-radius: 5px;
+          transition: background-color 0.2s, color 0.2s;
+          margin-bottom: 20px;
+      }
+      .home-button:hover {
+          background-color: #4e8bb0;
+          color: #fff;
+      }
       /* Instrucciones al final en 14px */
       .instructions {
           background-color: #fff;
@@ -41,7 +57,7 @@
           flex-direction: column;
           align-items: center;
       }
-      /* El tablero estará oculto hasta que se muestre mediante un botón */
+      /* El tablero estará oculto inicialmente */
       .chessboard, .empty-board {
           display: none;
           border: 2px solid #404040;
@@ -152,7 +168,6 @@
           font-size: 14px;
           width: 80px;
           margin-right: 8px;
-          /* Se permite ingreso en mayúsculas y minúsculas */
           border: 1px solid #ccc;
           border-radius: 4px;
       }
@@ -185,9 +200,12 @@
   </style>
 </head>
 <body>
+  <!-- Botón de Página de inicio -->
+  <a class="home-button" href="index.html">Página de inicio</a>
+  
   <h1>El juego de los saltos del caballo</h1>
 
-  <!-- Área de selección y botones (visible desde el inicio) -->
+  <!-- Área de selección y botones -->
   <div id="pieceSelection">
       <p>Selecciona la pieza negra contra la que jugar:</p>
       <select id="blackPiece" class="select-piece">
@@ -249,14 +267,13 @@
       // Variables globales
       const files = ['a','b','c','d','e','f','g','h'];
       const ranks = ['8','7','6','5','4','3','2','1'];
-      // Inicialmente, las posiciones están vacías (se muestran como "--")
       let knightPosition = "";
       let blackPiecePosition = "";
       let targetPosition = "";
       let previousPosition = "";
       let selectedBlackPiece = "queen";
       let gameStarted = false;
-      let route = []; // Para almacenar los movimientos válidos
+      let route = []; // Movimientos válidos
       
       // Elementos DOM
       const chessboard = document.getElementById("chessboard");
@@ -329,7 +346,6 @@
       function startGame() {
           selectedBlackPiece = blackPieceSelect.value;
           gameStarted = true;
-          // Asignar posiciones aleatorias para el caballo, la pieza negra y el destino
           knightPosition = getRandomPosition();
           do {
               blackPiecePosition = getRandomPosition();
@@ -535,19 +551,23 @@
       }
       
       function toggleBoard() {
-          // Alterna la visualización del tablero (chessboard)
-          chessboard.style.display = chessboard.style.display === "none" ? "block" : "none";
-          if(chessboard.style.display === "block") {
-              // Si se muestra el tablero, se oculta el tablero vacío
+          // Usamos getComputedStyle para obtener el valor real de display
+          const current = window.getComputedStyle(chessboard).display;
+          if(current === "none") {
+              chessboard.style.display = "block";
               emptyBoard.style.display = "none";
+          } else {
+              chessboard.style.display = "none";
           }
       }
       
       function toggleEmptyBoard() {
-          // Alterna la visualización del tablero vacío
-          emptyBoard.style.display = emptyBoard.style.display === "none" ? "block" : "none";
-          if(emptyBoard.style.display === "block") {
+          const current = window.getComputedStyle(emptyBoard).display;
+          if(current === "none") {
+              emptyBoard.style.display = "block";
               chessboard.style.display = "none";
+          } else {
+              emptyBoard.style.display = "none";
           }
       }
       
