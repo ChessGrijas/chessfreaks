@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El juego de los saltos del caballo</title>
+  <style>
+      body {
+          font-family: 'Noto Sans', Arial, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          text-align: center;
+          background-color: #f5f5f5;
+          color: #2c2c2c;
+      }
+      h1 {
+          color: #2c3e50;
+          margin-bottom: 10px;
+      }
+      /* Instrucciones al final en 14px */
+      .instructions {
+          background-color: #fff;
+          padding: 12px;
+          border-radius: 5px;
+          margin-top: 20px;
+          text-align: left;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          font-size: 14px;
+      }
+      .instructions ol, .instructions ul {
+          padding-left: 20px;
+          margin: 5px 0;
+      }
+      .instructions li {
+          margin-bottom: 3px;
+      }
+      .board-container {
+          margin-top: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+      }
+      /* El tablero estará oculto hasta que se muestre mediante un botón */
+      .chessboard, .empty-board {
+          display: none;
+          border: 2px solid #404040;
+          width: 400px;
+          height: 400px;
+          margin: 20px auto;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+          position: relative;
+          border-radius: 6px;
+      }
+      .row {
+          display: flex;
+          height: 12.5%;
+      }
+      .cell {
+          width: 12.5%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+      }
+      .white {
+          background-color: #f0d9b5;
+      }
+      .black {
+          background-color: #b58863;
+      }
+      /* Estilo para las piezas */
+      .piece {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+          z-index: 2;
+      }
+      /* Estilo para el banderín */
+      .flag-piece {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+          position: absolute;
+          z-index: 3;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+      }
+      .highlight {
+          position: relative;
+      }
+      .highlight::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(155, 199, 0, 0.4);
+          z-index: 1;
+      }
+      .target {
+          position: relative;
+      }
+      .target::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 155, 199, 0.4);
+          z-index: 1;
+      }
+      .game-info {
+          margin: 15px 0;
+          font-size: 16px;
+          background-color: #fff;
+          padding: 12px;
+          border-radius: 5px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .message {
+          margin: 12px 0;
+          padding: 8px;
+          border-radius: 5px;
+          font-weight: bold;
+      }
+      .correct {
+          color: #15781B;
+      }
+      .incorrect {
+          color: #C33;
+      }
+      button {
+          padding: 8px 12px;
+          margin: 5px;
+          border: none;
+          border-radius: 5px;
+          background-color: #4e8bb0;
+          color: white;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background-color 0.2s;
+      }
+      button:hover {
+          background-color: #3a6d8c;
+      }
+      .move-input {
+          padding: 8px;
+          font-size: 14px;
+          width: 80px;
+          margin-right: 8px;
+          /* Se permite ingreso en mayúsculas y minúsculas */
+          border: 1px solid #ccc;
+          border-radius: 4px;
+      }
+      .input-container {
+          margin: 15px 0;
+      }
+      .select-piece {
+          padding: 8px;
+          font-size: 14px;
+          margin-right: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+      }
+      .rank-label, .file-label {
+          position: absolute;
+          font-size: 12px;
+          color: #666;
+      }
+      .rank-label {
+          left: 2px;
+          top: 2px;
+      }
+      .file-label {
+          right: 2px;
+          bottom: 2px;
+      }
+      .board-buttons {
+          margin: 10px 0;
+      }
+  </style>
+</head>
+<body>
+  <h1>El juego de los saltos del caballo</h1>
+
+  <!-- Área de selección y botones (visible desde el inicio) -->
+  <div id="pieceSelection">
+      <p>Selecciona la pieza negra contra la que jugar:</p>
+      <select id="blackPiece" class="select-piece">
+          <option value="queen">Dama</option>
+          <option value="rook">Torre</option>
+          <option value="bishop">Alfil</option>
+          <option value="knight">Caballo</option>
+          <option value="pawn">Peón</option>
+      </select>
+      <button id="startGame">Comenzar juego</button>
+  </div>
+
+  <!-- Área de juego (información, entrada, botones y tablero) -->
+  <div id="gameArea">
+      <div class="game-info">
+          <p id="positionInfo">
+              Caballo blanco en: <strong>--</strong> | 
+              Pieza negra en: <strong>--</strong> | 
+              Destino: <strong>--</strong>
+          </p>
+          <p>Lleva al caballo a la casilla de destino sin que la pieza negra lo capture.</p>
+          <!-- Ruta de movimientos en verde y negrita -->
+          <p id="movePath" style="color: green; font-weight: bold;">Ruta: </p>
+      </div>
+      
+      <div class="input-container">
+          <input type="text" id="moveInput" class="move-input" placeholder="ej: Ce4" maxlength="3">
+          <button id="makeMove">Mover</button>
+      </div>
+      
+      <div id="message" class="message"></div>
+      
+      <div class="board-buttons">
+          <button id="toggleBoard">Mostrar/Ocultar tablero</button>
+          <button id="toggleEmptyBoard">Mostrar/Ocultar tablero vacío</button>
+          <button id="newGame">Nuevo juego</button>
+      </div>
+      
+      <div class="board-container">
+          <!-- El tablero se crea pero estará oculto inicialmente -->
+          <div id="chessboard" class="chessboard"></div>
+          <div id="emptyBoard" class="empty-board"></div>
+      </div>
+  </div>
+
+  <!-- Instrucciones al final -->
+  <div class="instructions">
+      <p><strong>Instrucciones:</strong></p>
+      <ol>
+          <li>Selecciona la pieza negra contra la que jugar.</li>
+          <li>Tu objetivo es mover el caballo blanco hasta la casilla de destino sin pasar por casillas donde pueda ser capturado.</li>
+          <li>Escribe los movimientos usando notación algebraica: solo la casilla (ej: "e4") o letra C seguida de la casilla (ej: "Ce4").</li>
+          <li>Si el caballo cae en una casilla dominada por la pieza negra o haces un movimiento ilegal, volverás a la casilla anterior.</li>
+          <li>Intenta hacerlo primero con el tablero en blanco y luego ocultando el tablero.</li>
+      </ol>
+  </div>
+
+  <script>
+      // Variables globales
+      const files = ['a','b','c','d','e','f','g','h'];
+      const ranks = ['8','7','6','5','4','3','2','1'];
+      // Inicialmente, las posiciones están vacías (se muestran como "--")
+      let knightPosition = "";
+      let blackPiecePosition = "";
+      let targetPosition = "";
+      let previousPosition = "";
+      let selectedBlackPiece = "queen";
+      let gameStarted = false;
+      let route = []; // Para almacenar los movimientos válidos
+      
+      // Elementos DOM
+      const chessboard = document.getElementById("chessboard");
+      const emptyBoard = document.getElementById("emptyBoard");
+      const moveInput = document.getElementById("moveInput");
+      const messageElement = document.getElementById("message");
+      const positionInfo = document.getElementById("positionInfo");
+      const pieceSelection = document.getElementById("pieceSelection");
+      const gameArea = document.getElementById("gameArea");
+      const blackPieceSelect = document.getElementById("blackPiece");
+      
+      // Registrar eventos
+      document.getElementById("startGame").addEventListener("click", startGame);
+      document.getElementById("makeMove").addEventListener("click", processMove);
+      document.getElementById("toggleBoard").addEventListener("click", toggleBoard);
+      document.getElementById("toggleEmptyBoard").addEventListener("click", toggleEmptyBoard);
+      document.getElementById("newGame").addEventListener("click", startGame);
+      moveInput.addEventListener("keypress", function(e) {
+          if(e.key === "Enter") {
+              processMove();
+          }
+      });
+      
+      // URLs de imágenes SVG para las piezas y el banderín
+      const pieceImages = {
+          whiteKnight: "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg",
+          blackQueen:  "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg",
+          blackRook:   "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg",
+          blackBishop: "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg",
+          blackKnight: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg",
+          blackPawn:   "https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg",
+          flag:        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/F1_chequered_flag.svg/640px-F1_chequered_flag.svg.png"
+      };
+      
+      // Función para crear el tablero (estructura de celdas)
+      function createChessboard(boardElement) {
+          boardElement.innerHTML = "";
+          for(let i = 0; i < 8; i++) {
+              const row = document.createElement("div");
+              row.className = "row";
+              for(let j = 0; j < 8; j++) {
+                  const cell = document.createElement("div");
+                  cell.className = (i+j) % 2 === 0 ? "cell white" : "cell black";
+                  cell.id = boardElement === chessboard ? files[j] + ranks[i] : "empty_" + files[j] + ranks[i];
+                  
+                  // Agregar etiquetas de coordenadas
+                  if(i === 7) {
+                      const fileLabel = document.createElement("span");
+                      fileLabel.className = "file-label";
+                      fileLabel.textContent = files[j];
+                      cell.appendChild(fileLabel);
+                  }
+                  if(j === 0) {
+                      const rankLabel = document.createElement("span");
+                      rankLabel.className = "rank-label";
+                      rankLabel.textContent = ranks[i];
+                      cell.appendChild(rankLabel);
+                  }
+                  row.appendChild(cell);
+              }
+              boardElement.appendChild(row);
+          }
+      }
+      
+      // Crear el tablero vacío al cargar la página (pero permanece oculto)
+      createChessboard(chessboard);
+      createChessboard(emptyBoard);
+      
+      // Función para iniciar el juego (definir posiciones y actualizar)
+      function startGame() {
+          selectedBlackPiece = blackPieceSelect.value;
+          gameStarted = true;
+          // Asignar posiciones aleatorias para el caballo, la pieza negra y el destino
+          knightPosition = getRandomPosition();
+          do {
+              blackPiecePosition = getRandomPosition();
+          } while(blackPiecePosition === knightPosition);
+          do {
+              targetPosition = getRandomPosition();
+          } while(
+              targetPosition === knightPosition ||
+              targetPosition === blackPiecePosition
+          );
+          previousPosition = knightPosition;
+          route = [];
+          updateMovePath();
+          updateBoard();
+          updatePositionInfo();
+          messageElement.textContent = "";
+          messageElement.className = "message";
+          moveInput.focus();
+          moveInput.value = "";
+          moveInput.disabled = false;
+          document.getElementById("makeMove").disabled = false;
+      }
+      
+      function getRandomPosition() {
+          const file = files[Math.floor(Math.random()*8)];
+          const rank = ranks[Math.floor(Math.random()*8)];
+          return file + rank;
+      }
+      
+      // Actualizar el tablero (colocar piezas solo si se han definido)
+      function updateBoard() {
+          // Limpiar piezas y marcas
+          document.querySelectorAll(".piece, .flag-piece").forEach(el => el.remove());
+          document.querySelectorAll(".cell").forEach(c => {
+              c.classList.remove("highlight");
+              c.classList.remove("target");
+          });
+          
+          if(knightPosition !== "") {
+              const knightCell = document.getElementById(knightPosition);
+              if(knightCell) {
+                  const knight = document.createElement("img");
+                  knight.className = "piece";
+                  knight.src = pieceImages.whiteKnight;
+                  knight.alt = "Caballo blanco";
+                  knightCell.appendChild(knight);
+                  knightCell.classList.add("highlight");
+              }
+          }
+          if(blackPiecePosition !== "") {
+              const blackPieceCell = document.getElementById(blackPiecePosition);
+              if(blackPieceCell) {
+                  const blackPiece = document.createElement("img");
+                  blackPiece.className = "piece";
+                  switch(selectedBlackPiece) {
+                      case "queen":
+                          blackPiece.src = pieceImages.blackQueen;
+                          blackPiece.alt = "Dama negra";
+                          break;
+                      case "rook":
+                          blackPiece.src = pieceImages.blackRook;
+                          blackPiece.alt = "Torre negra";
+                          break;
+                      case "bishop":
+                          blackPiece.src = pieceImages.blackBishop;
+                          blackPiece.alt = "Alfil negro";
+                          break;
+                      case "knight":
+                          blackPiece.src = pieceImages.blackKnight;
+                          blackPiece.alt = "Caballo negro";
+                          break;
+                      case "pawn":
+                          blackPiece.src = pieceImages.blackPawn;
+                          blackPiece.alt = "Peón negro";
+                          break;
+                  }
+                  blackPieceCell.appendChild(blackPiece);
+              }
+          }
+          if(targetPosition !== "") {
+              const targetCell = document.getElementById(targetPosition);
+              if(targetCell) {
+                  targetCell.classList.add("target");
+                  const flag = document.createElement("img");
+                  flag.className = "flag-piece";
+                  flag.src = pieceImages.flag;
+                  flag.alt = "X";
+                  targetCell.appendChild(flag);
+              }
+          }
+      }
+      
+      // Actualizar la información de posiciones (mostrando "--" si no están definidas)
+      function updatePositionInfo() {
+          const knightDisplay = knightPosition !== "" ? knightPosition : "--";
+          const blackDisplay = blackPiecePosition !== "" ? blackPiecePosition : "--";
+          const targetDisplay = targetPosition !== "" ? targetPosition : "--";
+          let pieceName;
+          switch(selectedBlackPiece) {
+              case "queen": pieceName = "Dama"; break;
+              case "rook": pieceName = "Torre"; break;
+              case "bishop": pieceName = "Alfil"; break;
+              case "knight": pieceName = "Caballo"; break;
+              case "pawn": pieceName = "Peón"; break;
+          }
+          positionInfo.innerHTML = `
+              Caballo blanco en: <strong>${knightDisplay}</strong> | 
+              ${pieceName} negro en: <strong>${blackDisplay}</strong> | 
+              Destino: <strong>${targetDisplay}</strong>
+          `;
+      }
+      
+      // Actualizar la visualización de la ruta (movimientos válidos)
+      function updateMovePath() {
+          document.getElementById("movePath").innerHTML = "Ruta: " + route.join(" ");
+      }
+      
+      // Procesar el movimiento ingresado (manteniendo el valor original para la ruta)
+      function processMove() {
+          if(!gameStarted) return;
+          let moveRaw = moveInput.value.trim();
+          let move = moveRaw.toLowerCase();
+          moveInput.value = "";
+          if(move.length === 3 && move[0] === "c") {
+              move = move.substring(1);
+          }
+          if(!isValidSquare(move)) {
+              showMessage("Formato incorrecto. Usa notación algebraica (ej: e4 o Ce4).", false);
+              return;
+          }
+          if(!isValidKnightMove(knightPosition, move)) {
+              showMessage(`Movimiento ilegal. Vuelves a la casilla ${knightPosition || "--"}.`, false);
+              return;
+          }
+          previousPosition = knightPosition;
+          knightPosition = move;
+          // Agregar el movimiento válido a la ruta (manteniendo el formato ingresado)
+          route.push(moveRaw);
+          updateMovePath();
+          if(isSquareAttacked(knightPosition)) {
+              showMessage(`Caballo cazado por ${getBlackPieceName()}. Vuelves a la casilla ${previousPosition}.`, false);
+              knightPosition = previousPosition;
+              updateBoard();
+              return;
+          }
+          updateBoard();
+          if(knightPosition === targetPosition) {
+              showMessage("¡Estupendo! ¡Has llegado a tu destino!", true);
+              moveInput.disabled = true;
+              document.getElementById("makeMove").disabled = true;
+              updatePositionInfo();
+              return;
+          }
+          showMessage("Correcto", true);
+          moveInput.focus();
+          updatePositionInfo();
+      }
+      
+      function showMessage(text, isCorrect) {
+          messageElement.textContent = text;
+          messageElement.className = isCorrect ? "message correct" : "message incorrect";
+      }
+      
+      function isValidSquare(square) {
+          if(square.length !== 2) return false;
+          const file = square.charAt(0);
+          const rank = square.charAt(1);
+          return files.includes(file) && ranks.includes(rank);
+      }
+      
+      function isValidKnightMove(from, to) {
+          if(from === to) return false;
+          const fromFile = files.indexOf(from.charAt(0));
+          const fromRank = ranks.indexOf(from.charAt(1));
+          const toFile = files.indexOf(to.charAt(0));
+          const toRank = ranks.indexOf(to.charAt(1));
+          const fileDiff = Math.abs(fromFile - toFile);
+          const rankDiff = Math.abs(fromRank - toRank);
+          return (fileDiff === 1 && rankDiff === 2) || (fileDiff === 2 && rankDiff === 1);
+      }
+      
+      function isSquareAttacked(square) {
+          if(square === blackPiecePosition) return true;
+          const squareFile = files.indexOf(square.charAt(0));
+          const squareRank = ranks.indexOf(square.charAt(1));
+          const pieceFile = files.indexOf(blackPiecePosition.charAt(0));
+          const pieceRank = ranks.indexOf(blackPiecePosition.charAt(1));
+          const fileDiff = Math.abs(squareFile - pieceFile);
+          const rankDiff = Math.abs(squareRank - pieceRank);
+          switch(selectedBlackPiece) {
+              case "queen":
+                  return fileDiff === 0 || rankDiff === 0 || fileDiff === rankDiff;
+              case "rook":
+                  return fileDiff === 0 || rankDiff === 0;
+              case "bishop":
+                  return fileDiff === rankDiff;
+              case "knight":
+                  return (fileDiff === 1 && rankDiff === 2) || (fileDiff === 2 && rankDiff === 1);
+              case "pawn":
+                  return fileDiff === 1 && (pieceRank - squareRank) === -1;
+          }
+          return false;
+      }
+      
+      function toggleBoard() {
+          // Alterna la visualización del tablero (chessboard)
+          chessboard.style.display = chessboard.style.display === "none" ? "block" : "none";
+          if(chessboard.style.display === "block") {
+              // Si se muestra el tablero, se oculta el tablero vacío
+              emptyBoard.style.display = "none";
+          }
+      }
+      
+      function toggleEmptyBoard() {
+          // Alterna la visualización del tablero vacío
+          emptyBoard.style.display = emptyBoard.style.display === "none" ? "block" : "none";
+          if(emptyBoard.style.display === "block") {
+              chessboard.style.display = "none";
+          }
+      }
+      
+      function getBlackPieceName() {
+          switch(selectedBlackPiece) {
+              case "queen": return "la Dama";
+              case "rook": return "la Torre";
+              case "bishop": return "el Alfil";
+              case "knight": return "el Caballo";
+              case "pawn": return "el Peón";
+          }
+      }
+  </script>
+</body>
+</html>
