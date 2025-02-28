@@ -4,20 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="https://unpkg.com/cm-chessboard@3.5.2/dist/cm-chessboard.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/cm-chessboard@3.5.2/dist/cm-chessboard.min.css"/>
     <style>
-        .board-container {
+        .board {
             width: 400px;
             height: 400px;
             margin: 0 auto;
             margin-top: 50px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 2px solid #333;
         }
+        
+        .square {
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+        }
+        
+        .white {
+            background-color: #f0d9b5;
+        }
+        
+        .black {
+            background-color: #b58863;
+        }
+        
         .controls {
             text-align: center;
             margin-top: 20px;
         }
+        
         .controls button {
             padding: 10px 20px;
             margin: 5px;
@@ -28,57 +47,98 @@
             border: none;
             border-radius: 4px;
         }
+        
         .controls button:hover {
             background-color: #3f4658;
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
 <body>
-    <div class="board-container">
-        <div id="board"></div>
-    </div>
+    <div id="board" class="board"></div>
     <div class="controls">
         <button id="prev">Anterior</button>
         <button id="next">Siguiente</button>
     </div>
 
     <script>
+        const PIECES = {
+            'k': '♔', 'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙',
+            'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟'
+        };
+
         const exercises = [
             {
-                pgn: '[Event "Tactic 1"]\n[FEN "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"]\n\n1. e4 ...',
+                fen: "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
                 solution: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
             },
             {
-                pgn: '[Event "Tactic 2"]\n[FEN "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"]\n\n...',
+                fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
                 solution: ['...']
             }
         ];
 
         let currentExercise = 0;
-        let board;
-        let chess;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            chess = new Chess();
-            board = new Chessboard(document.getElementById("board"), {
-                position: "start",
-                style: {
-                    cssClass: "default",
-                    showCoordinates: true,
-                    pieces: { file: "pieces/standard.svg" }
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        function setPosition(fen) {
+            const board = document.getElementById('board');
+            const squares = board.getElementsByClassName('square');
+            const position = fen.split(' ')[0];
+            const rows = position.split('/');
+            
+            // Limpiar el tablero
+            Array.from(squares).forEach(square => square.textContent = '');
+            
+            // Colocar piezas
+            rows.forEach((row, rowIndex) => {
+                let colIndex = 0;
+                for (const char of row) {
+                    if (isNaN(char)) {
+                        const square = squares[rowIndex * 8 + colIndex];
+                        const piece = document.createElement('div');
+                        piece.className = 'piece';
+                        piece.textContent = PIECES[char];
+                        piece.style.color = char === char.toUpperCase() ? 'white' : 'black';
+                        square.appendChild(piece);
+                        colIndex++;
+                    } else {
+                        colIndex += parseInt(char);
+                    }
                 }
             });
-            
-            loadExercise(currentExercise);
-        });
+        }
 
         function loadExercise(index) {
             const exercise = exercises[index];
-            const fen = exercise.pgn.match(/\[FEN "(.*?)"\]/)[1];
-            chess.load(fen);
-            board.setPosition(fen);
+            setPosition(exercise.fen);
         }
 
+        // Inicializar el tablero
+        createBoard();
+        loadExercise(currentExercise);
+
+        // Event listeners para los botones
         document.getElementById('prev').addEventListener('click', () => {
             if (currentExercise > 0) {
                 currentExercise--;
