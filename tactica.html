@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessground/8.1.1/chessground.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://unpkg.com/cm-chessboard@3.5.2/dist/cm-chessboard.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/cm-chessboard@3.5.2/dist/cm-chessboard.min.css"/>
     <style>
-        #board {
+        .board-container {
             width: 400px;
             height: 400px;
             margin: 0 auto;
@@ -17,19 +19,29 @@
             margin-top: 20px;
         }
         .controls button {
+            padding: 10px 20px;
             margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2f3542;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        .controls button:hover {
+            background-color: #3f4658;
         }
     </style>
 </head>
 <body>
-    <div id="board"></div>
+    <div class="board-container">
+        <div id="board"></div>
+    </div>
     <div class="controls">
         <button id="prev">Anterior</button>
         <button id="next">Siguiente</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessground/8.1.1/chessground.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         const exercises = [
             {
@@ -37,27 +49,34 @@
                 solution: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
             },
             {
-                pgn: '[Event "Tactic 2"]\n[FEN "8/8/8/8/8/8/8/8 w - - 0 1"]\n\n...',
+                pgn: '[Event "Tactic 2"]\n[FEN "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1"]\n\n...',
                 solution: ['...']
             }
-            // Añade más ejercicios aquí
         ];
 
         let currentExercise = 0;
+        let board;
+        let chess;
 
-        const boardElement = document.getElementById('board');
-        const chessground = Chessground(boardElement, {
-            coordinates: true,
-            resizable: true,
-            drawable: {
-                enabled: true
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            chess = new Chess();
+            board = new Chessboard(document.getElementById("board"), {
+                position: "start",
+                style: {
+                    cssClass: "default",
+                    showCoordinates: true,
+                    pieces: { file: "pieces/standard.svg" }
+                }
+            });
+            
+            loadExercise(currentExercise);
         });
 
         function loadExercise(index) {
             const exercise = exercises[index];
             const fen = exercise.pgn.match(/\[FEN "(.*?)"\]/)[1];
-            chessground.set({ fen });
+            chess.load(fen);
+            board.setPosition(fen);
         }
 
         document.getElementById('prev').addEventListener('click', () => {
@@ -73,8 +92,6 @@
                 loadExercise(currentExercise);
             }
         });
-
-        loadExercise(currentExercise);
     </script>
 </body>
 </html>
