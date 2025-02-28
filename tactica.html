@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <link rel="stylesheet" href="chessground.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessground/8.1.1/chessground.min.css">
     <style>
         #board {
             width: 400px;
@@ -28,7 +28,7 @@
         <button id="next">Siguiente</button>
     </div>
 
-    <script src="chessground.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessground/8.1.1/chessground.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         const exercises = [
@@ -46,7 +46,7 @@
         let currentExercise = 0;
 
         const boardElement = document.getElementById('board');
-        const chessground = new Chessground(boardElement, {
+        const chessground = Chessground(boardElement, {
             coordinates: true,
             resizable: true,
             drawable: {
