@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
+    <!-- Created by ChessGrijas on 2025-02-28 18:29:24 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
         .board {
@@ -137,12 +138,12 @@
 
         const exercises = [
             {
-                fen: "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-                solution: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
+                fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                solution: ['...d5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
             },
             {
                 fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
-                solution: ['...']
+                solution: ['Nxe5', 'Nxe5', 'd4', 'Nc6']
             }
         ];
 
@@ -207,11 +208,19 @@
             if (currentMoveIndex < moves.length) {
                 const move = moves[currentMoveIndex];
                 setTimeout(() => {
-                    chess.move(move);
-                    setPosition(chess.fen());
-                    currentMoveIndex++;
-                    isPlayerTurn = true;
-                    updateTurnIndicator();
+                    try {
+                        const result = chess.move(move);
+                        if (result) {
+                            setPosition(chess.fen());
+                            currentMoveIndex++;
+                            isPlayerTurn = true;
+                            updateTurnIndicator();
+                        } else {
+                            showMessage('Error en el movimiento: ' + move, true);
+                        }
+                    } catch (e) {
+                        showMessage('Error en el movimiento: ' + move, true);
+                    }
                 }, 500);
             }
         }
@@ -258,7 +267,6 @@
             ghost.style.left = x + 'px';
             ghost.style.top = y + 'px';
 
-            // Encontrar el cuadrado sobre el que está el ratón
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
@@ -266,14 +274,32 @@
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
-            // Resaltar el cuadrado destino si es válido
+            // Limpiar resaltados previos
             const squares = board.getElementsByClassName('square');
             Array.from(squares).forEach(s => s.classList.remove('highlight'));
             
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-                const targetSquare = squares[row * 8 + col];
-                if (!targetSquare.querySelector('.piece')) {
-                    targetSquare.classList.add('highlight');
+                const fromSquare = getSquareNotation(
+                    parseInt(originalSquare.dataset.row),
+                    parseInt(originalSquare.dataset.col)
+                );
+                const toSquare = getSquareNotation(row, col);
+                
+                // Verificar si el movimiento sería válido
+                const move = {
+                    from: fromSquare,
+                    to: toSquare,
+                    promotion: 'q'
+                };
+
+                try {
+                    const testChess = new Chess(chess.fen());
+                    if (testChess.move(move)) {
+                        const targetSquare = squares[row * 8 + col];
+                        targetSquare.classList.add('highlight');
+                    }
+                } catch (e) {
+                    // Movimiento inválido, no resaltar
                 }
             }
         }
@@ -295,13 +321,24 @@
                 );
                 const toSquare = getSquareNotation(row, col);
 
-                const targetSquare = board.children[row * 8 + col];
-                if (!targetSquare.querySelector('.piece') && isValidMove(fromSquare, toSquare)) {
-                    targetSquare.appendChild(draggedPiece);
-                    isPlayerTurn = false;
-                    updateTurnIndicator();
-                    makeComputerMove();
-                } else {
+                // Intentar hacer el movimiento
+                const move = {
+                    from: fromSquare,
+                    to: toSquare,
+                    promotion: 'q'
+                };
+
+                try {
+                    const result = chess.move(move);
+                    if (result) {
+                        setPosition(chess.fen());
+                        isPlayerTurn = false;
+                        updateTurnIndicator();
+                        makeComputerMove();
+                    } else {
+                        originalSquare.appendChild(draggedPiece);
+                    }
+                } catch (e) {
                     originalSquare.appendChild(draggedPiece);
                 }
             } else {
@@ -350,26 +387,20 @@
             });
         }
 
-        function isValidMove(from, to) {
-            try {
-                const move = chess.move({ from, to, promotion: 'q' });
-                if (move) {
-                    return true;
-                }
-            } catch (e) {
-                return false;
-            }
-            return false;
-        }
-
         function loadExercise(index) {
             const exercise = exercises[index];
-            chess = new Chess(exercise.fen);
+            chess = new Chess();
+            chess.load(exercise.fen);
             setPosition(chess.fen());
             currentMoveIndex = 0;
             isPlayerTurn = chess.turn() === 'w';
             updateTurnIndicator();
             showMessage('');
+
+            // Si el primer turno es de las negras, hacer el movimiento automáticamente
+            if (!isPlayerTurn) {
+                makeComputerMove();
+            }
         }
 
         // Inicialización
