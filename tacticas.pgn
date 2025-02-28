@@ -1,0 +1,576 @@
+﻿[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "7k/8/5K2/8/8/8/8/6Q1 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540354375986"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qg7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5k2/8/5K2/3Q4/8/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540391862591"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "4k3/8/3K4/8/8/8/8/6Q1 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540422201671"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qg8# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "3k4/8/3K4/3Q4/8/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540459508048"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qg8# (1. Qa8#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "kr6/3Q4/K7/8/8/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540544008537"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qa7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "7k/6pp/3K4/8/8/8/8/5Q2 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540575138146"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf8# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/8/7Q/8/8/2K5/3p4/3k4 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540615287147"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qxd2# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/8/8/6pk/6p1/3Q4/6K1/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540686688628"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qh7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5k2/8/5pP1/4p3/2Q1P3/7K/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540725637501"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5k2/8/6K1/8/8/8/8/3Q4 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540758163846"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qd8# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "7Q/8/8/4pkP1/4p3/6K1/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540789535119"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf6# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/8/8/8/8/1K6/6Q1/1kq5 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540829561240"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qa2# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "4Q3/8/8/8/8/3K4/8/2qk4 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540858741153"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qe2# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "1k6/p7/K7/8/8/8/6Q1/4q3 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540894138794"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qb7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "8/8/8/8/3Q4/2K5/p7/kb6 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148540926779827"]
+[SourceVersionDate "2025.02.23"]
+
+1. Kb3# (1. Kd2#) (1. Kc4#) (1. Kb4#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "5rk1/Q7/6K1/8/8/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541121610172"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qg7# (1. Qh7#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "6rk/8/2Q5/8/8/4K3/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541172613573"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qh6# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "kr6/2K5/8/8/8/8/8/5Q2 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541211607502"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qa6# (1. Qa1#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5q1r/6k1/8/7P/6P1/6P1/2Q3K1/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541276762583"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qg6# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "8/8/4K1k1/8/8/2Q5/8/7R w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541318124000"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf6# (1. Qg3#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "4k3/8/4K3/8/7R/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541459010025"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rh8# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "3R4/8/8/8/8/1K6/8/k7 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541489046002"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rd1# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "3k4/q7/5P2/5B2/6P1/4p1K1/8/2R5 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541521076731"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rc8# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/7R/3pk3/5pB1/2K2P2/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541633163780"]
+[SourceVersionDate "2025.02.23"]
+
+1. Re7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/8/4p2Q/3qk3/6K1/4P3/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541670998541"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qf4# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "rk6/p1r5/8/8/2Q5/6B1/8/5K2 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541710430742"]
+[SourceVersionDate "2025.02.23"]
+
+1. Qxc7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5r1k/3R3p/5N2/4P3/8/6K1/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541783032351"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rxh7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "4k3/R7/3PN3/8/8/5K2/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541817086504"]
+[SourceVersionDate "2025.02.23"]
+
+1. Re7# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/8/R7/7k/6p1/4BbK1/1r3P2/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541850014257"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rh6# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "8/1p6/p7/k1K5/b4B2/8/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541923504700"]
+[SourceVersionDate "2025.02.23"]
+
+1. Bd2# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Annotator "User"]
+[SetUp "1"]
+[FEN "5r1k/5pRp/5B2/4P3/8/6P1/7K/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148541986603589"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rg6# (1. Rg5#) (1. Rg4#) *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "6R1/b7/8/3KPk2/5P2/8/4N3/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542085190222"]
+[SourceVersionDate "2025.02.23"]
+
+1. Rg5# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "6bk/8/8/8/4B3/8/5BK1/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542344540759"]
+[SourceVersionDate "2025.02.23"]
+
+1. Bd4# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "kb6/p6B/8/8/8/8/5K2/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542386156128"]
+[SourceVersionDate "2025.02.23"]
+
+1. Be4# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "5rk1/5p1p/6p1/4B3/3P2N1/8/8/7K w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542412538473"]
+[SourceVersionDate "2025.02.23"]
+
+1. Nh6# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "7k/7p/3B3N/8/8/2K5/8/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542448530034"]
+[SourceVersionDate "2025.02.23"]
+
+1. Be5# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "6r1/5p1k/6pn/8/3B4/5N1p/8/1K6 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542487351931"]
+[SourceVersionDate "2025.02.23"]
+
+1. Ng5# *
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[SetUp "1"]
+[FEN "7k/4N1pp/3N4/8/8/8/6K1/8 w - - 0 1"]
+[PlyCount "1"]
+[GameId "2148542526370436"]
+[SourceVersionDate "2025.02.23"]
+
+1. Nf7# *
+
