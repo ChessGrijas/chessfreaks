@@ -1,0 +1,34 @@
+.chessground {
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+}
+.chessground .cg-board {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  background-color: #f0d9b5;
+}
+.chessground .cg-board .cg-square {
+  position: relative;
+  width: 12.5%;
+  height: 12.5%;
+  box-sizing: border-box;
+}
+.chessground .cg-board .cg-square:nth-child(odd) {
+  background-color: #b58863;
+}
+.chessground .cg-piece {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}

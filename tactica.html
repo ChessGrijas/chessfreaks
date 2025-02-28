@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Ajedrez</title>
+    <link rel="stylesheet" href="chessground.min.css">
+    <style>
+        #board {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .controls button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="board"></div>
+    <div class="controls">
+        <button id="prev">Anterior</button>
+        <button id="next">Siguiente</button>
+    </div>
+
+    <script src="chessground.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        const exercises = [
+            {
+                pgn: '[Event "Tactic 1"]\n[FEN "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1"]\n\n1. e4 ...',
+                solution: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
+            },
+            {
+                pgn: '[Event "Tactic 2"]\n[FEN "8/8/8/8/8/8/8/8 w - - 0 1"]\n\n...',
+                solution: ['...']
+            }
+            // Añade más ejercicios aquí
+        ];
+
+        let currentExercise = 0;
+
+        const boardElement = document.getElementById('board');
+        const chessground = Chessground(boardElement, {
+            coordinates: true,
+            resizable: true,
+            drawable: {
+                enabled: true
+            }
+        });
+
+        function loadExercise(index) {
+            const exercise = exercises[index];
+            const fen = exercise.pgn.match(/\[FEN "(.*?)"\]/)[1];
+            chessground.set({ fen });
+        }
+
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentExercise > 0) {
+                currentExercise--;
+                loadExercise(currentExercise);
+            }
+        });
+
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                loadExercise(currentExercise);
+            }
+        });
+
+        loadExercise(currentExercise);
+    </script>
+</body>
+</html>
