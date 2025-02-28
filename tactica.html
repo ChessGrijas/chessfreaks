@@ -4,168 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
-        .board {
-            width: 400px;
-            height: 400px;
-            margin: 0 auto;
-            margin-top: 50px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            border: 2px solid #333;
-            position: relative;
-        }
-        
-        .square {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        
-        .white {
-            background-color: #f0d9b5;
-        }
-        
-        .black {
-            background-color: #b58863;
-        }
-        
-        .controls {
+        /* ... (mantener los mismos estilos anteriores) ... */
+        .message {
             text-align: center;
             margin-top: 20px;
+            font-size: 18px;
+            color: #333;
         }
-        
-        .controls button {
-            padding: 10px 20px;
-            margin: 5px;
+        .turn-indicator {
+            text-align: center;
+            margin-top: 10px;
             font-size: 16px;
-            cursor: pointer;
-            background-color: #2f3542;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        
-        .controls button:hover {
-            background-color: #3f4658;
-        }
-
-        .piece {
-            width: 45px;
-            height: 45px;
-            position: absolute;
-            cursor: grab;
-            user-select: none;
-            z-index: 1;
-            transition: transform 0.1s;
-        }
-
-        .piece.dragging {
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .piece:active {
-            cursor: grabbing;
-        }
-
-        .highlight {
-            background-color: rgba(255, 255, 0, 0.4);
-        }
-
-        .coordinates {
-            position: absolute;
-            font-size: 12px;
             color: #666;
-            pointer-events: none;
-        }
-
-        .coordinates.file {
-            bottom: -20px;
-            right: 5px;
-        }
-
-        .coordinates.rank {
-            left: -20px;
-            top: 5px;
         }
     </style>
 </head>
 <body>
     <div id="board" class="board"></div>
+    <div class="turn-indicator" id="turnIndicator">Turno: Blancas</div>
+    <div class="message" id="message"></div>
     <div class="controls">
         <button id="prev">Anterior</button>
         <button id="next">Siguiente</button>
+        <button id="reset">Reiniciar</button>
     </div>
 
     <script>
-        const PIECES_SVG = {
-            'k': 'bK.svg',
-            'q': 'bQ.svg',
-            'r': 'bR.svg',
-            'b': 'bB.svg',
-            'n': 'bN.svg',
-            'p': 'bP.svg',
-            'K': 'wK.svg',
-            'Q': 'wQ.svg',
-            'R': 'wR.svg',
-            'B': 'wB.svg',
-            'N': 'wN.svg',
-            'P': 'wP.svg'
-        };
-
-        const exercises = [
-            {
-                fen: "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-                solution: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
-            },
-            {
-                fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
-                solution: ['...']
-            }
-        ];
+        // ... (mantener las constantes PIECES_SVG y exercises) ...
 
         let currentExercise = 0;
         let draggedPiece = null;
         let dragOffset = { x: 0, y: 0 };
         let originalSquare = null;
+        let chess = new Chess();
+        let currentMoveIndex = 0;
+        let isPlayerTurn = true;
 
-        function createBoard() {
-            const board = document.getElementById('board');
-            board.innerHTML = '';
+        function updateTurnIndicator() {
+            const turnText = chess.turn() === 'w' ? 'Blancas' : 'Negras';
+            document.getElementById('turnIndicator').textContent = `Turno: ${turnText}`;
+        }
+
+        function showMessage(text, isError = false) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.style.color = isError ? '#cc0000' : '#333';
+        }
+
+        function getSquareNotation(row, col) {
+            const file = String.fromCharCode(97 + col);
+            const rank = 8 - row;
+            return `${file}${rank}`;
+        }
+
+        function makeComputerMove() {
+            const exercise = exercises[currentExercise];
+            const moves = exercise.solution;
             
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    const square = document.createElement('div');
-                    square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
-                    square.dataset.row = row;
-                    square.dataset.col = col;
-                    
-                    if (col === 0) {
-                        const rankCoord = document.createElement('div');
-                        rankCoord.className = 'coordinates rank';
-                        rankCoord.textContent = 8 - row;
-                        square.appendChild(rankCoord);
-                    }
-                    if (row === 7) {
-                        const fileCoord = document.createElement('div');
-                        fileCoord.className = 'coordinates file';
-                        fileCoord.textContent = String.fromCharCode(97 + col);
-                        square.appendChild(fileCoord);
-                    }
-
-                    board.appendChild(square);
-                }
+            if (currentMoveIndex < moves.length) {
+                const move = moves[currentMoveIndex];
+                setTimeout(() => {
+                    chess.move(move);
+                    setPosition(chess.fen());
+                    currentMoveIndex++;
+                    isPlayerTurn = true;
+                    updateTurnIndicator();
+                }, 500);
             }
         }
 
+        function isValidMove(fromSquare, toSquare) {
+            const move = {
+                from: fromSquare,
+                to: toSquare,
+                promotion: 'q' // siempre promocionar a reina por simplicidad
+            };
+
+            try {
+                const result = chess.move(move);
+                if (result) {
+                    return true;
+                }
+            } catch (e) {
+                return false;
+            }
+            return false;
+        }
+
         function startDragging(e) {
-            if (e.button !== 0) return; // Solo botón izquierdo
+            if (e.button !== 0) return;
             const piece = e.target.closest('.piece');
             if (!piece) return;
+
+            // Verificar si es el turno del jugador y si la pieza es del color correcto
+            const pieceColor = piece.src.includes('w') ? 'w' : 'b';
+            if (!isPlayerTurn || pieceColor !== chess.turn()) {
+                return;
+            }
 
             draggedPiece = piece;
             originalSquare = piece.parentElement;
@@ -178,7 +115,6 @@
 
             piece.classList.add('dragging');
             
-            // Crear una copia visual para el arrastre
             const ghost = piece.cloneNode(true);
             ghost.style.position = 'fixed';
             ghost.style.pointerEvents = 'none';
@@ -187,36 +123,6 @@
             draggedPiece.ghost = ghost;
 
             updateDragPosition(e);
-        }
-
-        function updateDragPosition(e) {
-            if (!draggedPiece || !draggedPiece.ghost) return;
-
-            const ghost = draggedPiece.ghost;
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
-
-            ghost.style.left = x + 'px';
-            ghost.style.top = y + 'px';
-
-            // Encontrar el cuadrado sobre el que está el ratón
-            const board = document.getElementById('board');
-            const boardRect = board.getBoundingClientRect();
-            const squareSize = boardRect.width / 8;
-            
-            const col = Math.floor((e.clientX - boardRect.left) / squareSize);
-            const row = Math.floor((e.clientY - boardRect.top) / squareSize);
-
-            // Resaltar el cuadrado destino si es válido
-            const squares = board.getElementsByClassName('square');
-            Array.from(squares).forEach(s => s.classList.remove('highlight'));
-            
-            if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-                const targetSquare = squares[row * 8 + col];
-                if (!targetSquare.querySelector('.piece')) {
-                    targetSquare.classList.add('highlight');
-                }
-            }
         }
 
         function stopDragging(e) {
@@ -230,13 +136,25 @@
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-                const targetSquare = board.children[row * 8 + col];
-                if (!targetSquare.querySelector('.piece')) {
-                    targetSquare.appendChild(draggedPiece);
+                const fromSquare = getSquareNotation(
+                    parseInt(originalSquare.dataset.row),
+                    parseInt(originalSquare.dataset.col)
+                );
+                const toSquare = getSquareNotation(row, col);
+
+                if (isValidMove(fromSquare, toSquare)) {
+                    setPosition(chess.fen());
+                    isPlayerTurn = false;
+                    updateTurnIndicator();
+                    makeComputerMove();
+                } else {
+                    // Movimiento inválido, devolver pieza a su posición original
+                    originalSquare.appendChild(draggedPiece);
                 }
+            } else {
+                originalSquare.appendChild(draggedPiece);
             }
 
-            // Limpiar
             if (draggedPiece.ghost) {
                 draggedPiece.ghost.remove();
                 delete draggedPiece.ghost;
@@ -250,62 +168,22 @@
             draggedPiece = null;
         }
 
-        function setPosition(fen) {
-            const board = document.getElementById('board');
-            const squares = board.getElementsByClassName('square');
-            const position = fen.split(' ')[0];
-            const rows = position.split('/');
-            
-            Array.from(squares).forEach(square => {
-                const piece = square.querySelector('.piece');
-                if (piece) piece.remove();
-            });
-            
-            rows.forEach((row, rowIndex) => {
-                let colIndex = 0;
-                for (const char of row) {
-                    if (isNaN(char)) {
-                        const square = squares[rowIndex * 8 + colIndex];
-                        const piece = document.createElement('img');
-                        piece.className = 'piece';
-                        piece.src = `piezas/${PIECES_SVG[char]}`;
-                        piece.draggable = false;
-                        square.appendChild(piece);
-                        colIndex++;
-                    } else {
-                        colIndex += parseInt(char);
-                    }
-                }
-            });
-        }
-
         function loadExercise(index) {
             const exercise = exercises[index];
-            setPosition(exercise.fen);
+            chess.load(exercise.fen);
+            setPosition(chess.fen());
+            currentMoveIndex = 0;
+            isPlayerTurn = chess.turn() === 'w';
+            updateTurnIndicator();
+            showMessage('');
         }
 
-        // Inicialización
-        createBoard();
-        loadExercise(currentExercise);
-
-        // Event listeners
-        document.addEventListener('mousedown', startDragging);
-        document.addEventListener('mousemove', updateDragPosition);
-        document.addEventListener('mouseup', stopDragging);
-
-        document.getElementById('prev').addEventListener('click', () => {
-            if (currentExercise > 0) {
-                currentExercise--;
-                loadExercise(currentExercise);
-            }
+        document.getElementById('reset').addEventListener('click', () => {
+            loadExercise(currentExercise);
         });
 
-        document.getElementById('next').addEventListener('click', () => {
-            if (currentExercise < exercises.length - 1) {
-                currentExercise++;
-                loadExercise(currentExercise);
-            }
-        });
+        // ... (mantener el resto del código igual) ...
+
     </script>
 </body>
 </html>
