@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-02-28 18:29:24 UTC -->
+    <!-- Created by ChessGrijas on 2025-02-28 18:44:39 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
         .board {
@@ -136,17 +136,7 @@
             'P': 'wP.svg'
         };
 
-        const exercises = [
-            {
-                fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-                solution: ['...d5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6']
-            },
-            {
-                fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1",
-                solution: ['Nxe5', 'Nxe5', 'd4', 'Nc6']
-            }
-        ];
-
+        let exercises = [];
         let currentExercise = 0;
         let draggedPiece = null;
         let dragOffset = { x: 0, y: 0 };
@@ -154,6 +144,39 @@
         let chess = new Chess();
         let currentMoveIndex = 0;
         let isPlayerTurn = true;
+
+        async function loadPGNFile() {
+            try {
+                const response = await fetch('tacticas.pgn');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const pgnText = await response.text();
+                
+                // Dividir el archivo PGN en juegos individuales
+                const games = pgnText.split('\n\n[').map((game, index) => 
+                    index === 0 ? game : '[' + game);
+
+                exercises = games.map(game => {
+                    // Extraer FEN y movimientos
+                    const fenMatch = game.match(/\[FEN "(.*?)"\]/);
+                    const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                    
+                    // Extraer los movimientos del PGN
+                    let moveText = game.split('\n\n').pop().trim();
+                    moveText = moveText.replace(/\d+\.(\.\.)?/g, '').replace(/\*/g, '').trim();
+                    const solution = moveText.split(/\s+/).filter(move => move.length > 0);
+
+                    return { fen, solution };
+                });
+
+                // Iniciar el primer ejercicio
+                loadExercise(0);
+            } catch (error) {
+                console.error('Error loading PGN file:', error);
+                showMessage('Error al cargar el archivo de tácticas', true);
+            }
+        }
 
         function createBoard() {
             const board = document.getElementById('board');
@@ -230,7 +253,6 @@
             const piece = e.target.closest('.piece');
             if (!piece) return;
 
-            // Verificar si es el turno del jugador y si la pieza es del color correcto
             const pieceColor = piece.src.includes('w') ? 'w' : 'b';
             if (!isPlayerTurn || pieceColor !== chess.turn()) {
                 return;
@@ -274,7 +296,6 @@
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
-            // Limpiar resaltados previos
             const squares = board.getElementsByClassName('square');
             Array.from(squares).forEach(s => s.classList.remove('highlight'));
             
@@ -285,7 +306,6 @@
                 );
                 const toSquare = getSquareNotation(row, col);
                 
-                // Verificar si el movimiento sería válido
                 const move = {
                     from: fromSquare,
                     to: toSquare,
@@ -321,7 +341,6 @@
                 );
                 const toSquare = getSquareNotation(row, col);
 
-                // Intentar hacer el movimiento
                 const move = {
                     from: fromSquare,
                     to: toSquare,
@@ -397,7 +416,6 @@
             updateTurnIndicator();
             showMessage('');
 
-            // Si el primer turno es de las negras, hacer el movimiento automáticamente
             if (!isPlayerTurn) {
                 makeComputerMove();
             }
@@ -405,7 +423,10 @@
 
         // Inicialización
         createBoard();
-        loadExercise(currentExercise);
+        loadPGNFile().catch(error => {
+            console.error('Error in initialization:', error);
+            showMessage('Error al inicializar el tablero', true);
+        });
 
         // Event listeners
         document.addEventListener('mousedown', startDragging);
