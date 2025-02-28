@@ -17,7 +17,7 @@
         }
         
         .square {
-            width: 100%;
+            width: 50px;
             height: 50px;
             display: flex;
             justify-content: center;
@@ -54,12 +54,18 @@
         }
 
         .piece {
-            width: 90%;
-            height: 90%;
+            width: 45px;
+            height: 45px;
             position: absolute;
             cursor: grab;
             user-select: none;
             z-index: 1;
+            transition: transform 0.1s;
+        }
+
+        .piece.dragging {
+            z-index: 1000;
+            pointer-events: none;
         }
 
         .piece:active {
@@ -68,15 +74,6 @@
 
         .highlight {
             background-color: rgba(255, 255, 0, 0.4);
-        }
-
-        .possible-move {
-            position: absolute;
-            width: 30%;
-            height: 30%;
-            border-radius: 50%;
-            background-color: rgba(0, 0, 0, 0.1);
-            pointer-events: none;
         }
 
         .coordinates {
@@ -132,15 +129,14 @@
         ];
 
         let currentExercise = 0;
-        let selectedPiece = null;
         let draggedPiece = null;
-        let originalPosition = null;
+        let dragOffset = { x: 0, y: 0 };
+        let originalSquare = null;
 
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
             
-            // Crear cuadrados
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
@@ -148,7 +144,6 @@
                     square.dataset.row = row;
                     square.dataset.col = col;
                     
-                    // Añadir coordenadas
                     if (col === 0) {
                         const rankCoord = document.createElement('div');
                         rankCoord.className = 'coordinates rank';
@@ -165,71 +160,93 @@
                     board.appendChild(square);
                 }
             }
-
-            // Eventos para el drag & drop
-            board.addEventListener('mousedown', startDragging);
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDragging);
         }
 
         function startDragging(e) {
+            if (e.button !== 0) return; // Solo botón izquierdo
             const piece = e.target.closest('.piece');
             if (!piece) return;
 
             draggedPiece = piece;
-            originalPosition = {
-                x: piece.offsetLeft,
-                y: piece.offsetTop
+            originalSquare = piece.parentElement;
+            
+            const rect = piece.getBoundingClientRect();
+            dragOffset = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
             };
 
-            // Ajustar el offset según la posición del ratón en la pieza
-            const rect = piece.getBoundingClientRect();
-            const offsetX = e.clientX - rect.left;
-            const offsetY = e.clientY - rect.top;
+            piece.classList.add('dragging');
+            
+            // Crear una copia visual para el arrastre
+            const ghost = piece.cloneNode(true);
+            ghost.style.position = 'fixed';
+            ghost.style.pointerEvents = 'none';
+            ghost.style.opacity = '0.8';
+            document.body.appendChild(ghost);
+            draggedPiece.ghost = ghost;
 
-            draggedPiece.style.position = 'fixed';
-            draggedPiece.style.zIndex = 1000;
-
-            function moveAt(pageX, pageY) {
-                draggedPiece.style.left = pageX - offsetX + 'px';
-                draggedPiece.style.top = pageY - offsetY + 'px';
-            }
-
-            moveAt(e.pageX, e.pageY);
+            updateDragPosition(e);
         }
 
-        function drag(e) {
-            if (!draggedPiece) return;
+        function updateDragPosition(e) {
+            if (!draggedPiece || !draggedPiece.ghost) return;
 
-            draggedPiece.style.left = e.pageX - draggedPiece.offsetWidth / 2 + 'px';
-            draggedPiece.style.top = e.pageY - draggedPiece.offsetHeight / 2 + 'px';
+            const ghost = draggedPiece.ghost;
+            const x = e.clientX - dragOffset.x;
+            const y = e.clientY - dragOffset.y;
+
+            ghost.style.left = x + 'px';
+            ghost.style.top = y + 'px';
+
+            // Encontrar el cuadrado sobre el que está el ratón
+            const board = document.getElementById('board');
+            const boardRect = board.getBoundingClientRect();
+            const squareSize = boardRect.width / 8;
+            
+            const col = Math.floor((e.clientX - boardRect.left) / squareSize);
+            const row = Math.floor((e.clientY - boardRect.top) / squareSize);
+
+            // Resaltar el cuadrado destino si es válido
+            const squares = board.getElementsByClassName('square');
+            Array.from(squares).forEach(s => s.classList.remove('highlight'));
+            
+            if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+                const targetSquare = squares[row * 8 + col];
+                if (!targetSquare.querySelector('.piece')) {
+                    targetSquare.classList.add('highlight');
+                }
+            }
         }
 
         function stopDragging(e) {
             if (!draggedPiece) return;
 
             const board = document.getElementById('board');
-            const rect = board.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            // Encontrar el cuadrado destino
-            const col = Math.floor(x / (rect.width / 8));
-            const row = Math.floor(y / (rect.height / 8));
+            const boardRect = board.getBoundingClientRect();
+            const squareSize = boardRect.width / 8;
+            
+            const col = Math.floor((e.clientX - boardRect.left) / squareSize);
+            const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
                 const targetSquare = board.children[row * 8 + col];
                 if (!targetSquare.querySelector('.piece')) {
-                    draggedPiece.style.position = 'absolute';
                     targetSquare.appendChild(draggedPiece);
-                } else {
-                    // Volver a la posición original
-                    draggedPiece.style.position = 'absolute';
-                    draggedPiece.style.left = originalPosition.x + 'px';
-                    draggedPiece.style.top = originalPosition.y + 'px';
                 }
             }
 
+            // Limpiar
+            if (draggedPiece.ghost) {
+                draggedPiece.ghost.remove();
+                delete draggedPiece.ghost;
+            }
+            
+            draggedPiece.classList.remove('dragging');
+            Array.from(board.getElementsByClassName('square')).forEach(s => 
+                s.classList.remove('highlight')
+            );
+            
             draggedPiece = null;
         }
 
@@ -239,13 +256,11 @@
             const position = fen.split(' ')[0];
             const rows = position.split('/');
             
-            // Limpiar el tablero
             Array.from(squares).forEach(square => {
                 const piece = square.querySelector('.piece');
                 if (piece) piece.remove();
             });
             
-            // Colocar piezas
             rows.forEach((row, rowIndex) => {
                 let colIndex = 0;
                 for (const char of row) {
@@ -269,11 +284,15 @@
             setPosition(exercise.fen);
         }
 
-        // Inicializar el tablero
+        // Inicialización
         createBoard();
         loadExercise(currentExercise);
 
-        // Event listeners para los botones
+        // Event listeners
+        document.addEventListener('mousedown', startDragging);
+        document.addEventListener('mousemove', updateDragPosition);
+        document.addEventListener('mouseup', stopDragging);
+
         document.getElementById('prev').addEventListener('click', () => {
             if (currentExercise > 0) {
                 currentExercise--;
