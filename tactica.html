@@ -46,7 +46,7 @@
         let currentExercise = 0;
 
         const boardElement = document.getElementById('board');
-        const chessground = Chessground(boardElement, {
+        const chessground = new Chessground(boardElement, {
             coordinates: true,
             resizable: true,
             drawable: {
