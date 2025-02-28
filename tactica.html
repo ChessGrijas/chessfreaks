@@ -13,6 +13,7 @@
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             border: 2px solid #333;
+            position: relative;
         }
         
         .square {
@@ -21,7 +22,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 36px;
+            position: relative;
         }
         
         .white {
@@ -53,10 +54,46 @@
         }
 
         .piece {
-            width: 80%;
-            height: 80%;
-            cursor: pointer;
+            width: 90%;
+            height: 90%;
+            position: absolute;
+            cursor: grab;
             user-select: none;
+            z-index: 1;
+        }
+
+        .piece:active {
+            cursor: grabbing;
+        }
+
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.4);
+        }
+
+        .possible-move {
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        .coordinates {
+            position: absolute;
+            font-size: 12px;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .coordinates.file {
+            bottom: -20px;
+            right: 5px;
+        }
+
+        .coordinates.rank {
+            left: -20px;
+            top: 5px;
         }
     </style>
 </head>
@@ -68,9 +105,19 @@
     </div>
 
     <script>
-        const PIECES = {
-            'k': '♔', 'q': '♕', 'r': '♖', 'b': '♗', 'n': '♘', 'p': '♙',
-            'K': '♚', 'Q': '♛', 'R': '♜', 'B': '♝', 'N': '♞', 'P': '♟'
+        const PIECES_SVG = {
+            'k': 'black-king.svg',
+            'q': 'black-queen.svg',
+            'r': 'black-rook.svg',
+            'b': 'black-bishop.svg',
+            'n': 'black-knight.svg',
+            'p': 'black-pawn.svg',
+            'K': 'white-king.svg',
+            'Q': 'white-queen.svg',
+            'R': 'white-rook.svg',
+            'B': 'white-bishop.svg',
+            'N': 'white-knight.svg',
+            'P': 'white-pawn.svg'
         };
 
         const exercises = [
@@ -85,20 +132,105 @@
         ];
 
         let currentExercise = 0;
+        let selectedPiece = null;
+        let draggedPiece = null;
+        let originalPosition = null;
 
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
             
+            // Crear cuadrados
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
                     square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
+                    
+                    // Añadir coordenadas
+                    if (col === 0) {
+                        const rankCoord = document.createElement('div');
+                        rankCoord.className = 'coordinates rank';
+                        rankCoord.textContent = 8 - row;
+                        square.appendChild(rankCoord);
+                    }
+                    if (row === 7) {
+                        const fileCoord = document.createElement('div');
+                        fileCoord.className = 'coordinates file';
+                        fileCoord.textContent = String.fromCharCode(97 + col);
+                        square.appendChild(fileCoord);
+                    }
+
                     board.appendChild(square);
                 }
             }
+
+            // Eventos para el drag & drop
+            board.addEventListener('mousedown', startDragging);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDragging);
+        }
+
+        function startDragging(e) {
+            const piece = e.target.closest('.piece');
+            if (!piece) return;
+
+            draggedPiece = piece;
+            originalPosition = {
+                x: piece.offsetLeft,
+                y: piece.offsetTop
+            };
+
+            // Ajustar el offset según la posición del ratón en la pieza
+            const rect = piece.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
+
+            draggedPiece.style.position = 'fixed';
+            draggedPiece.style.zIndex = 1000;
+
+            function moveAt(pageX, pageY) {
+                draggedPiece.style.left = pageX - offsetX + 'px';
+                draggedPiece.style.top = pageY - offsetY + 'px';
+            }
+
+            moveAt(e.pageX, e.pageY);
+        }
+
+        function drag(e) {
+            if (!draggedPiece) return;
+
+            draggedPiece.style.left = e.pageX - draggedPiece.offsetWidth / 2 + 'px';
+            draggedPiece.style.top = e.pageY - draggedPiece.offsetHeight / 2 + 'px';
+        }
+
+        function stopDragging(e) {
+            if (!draggedPiece) return;
+
+            const board = document.getElementById('board');
+            const rect = board.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Encontrar el cuadrado destino
+            const col = Math.floor(x / (rect.width / 8));
+            const row = Math.floor(y / (rect.height / 8));
+
+            if (row >= 0 && row < 8 && col >= 0 && col < 8) {
+                const targetSquare = board.children[row * 8 + col];
+                if (!targetSquare.querySelector('.piece')) {
+                    draggedPiece.style.position = 'absolute';
+                    targetSquare.appendChild(draggedPiece);
+                } else {
+                    // Volver a la posición original
+                    draggedPiece.style.position = 'absolute';
+                    draggedPiece.style.left = originalPosition.x + 'px';
+                    draggedPiece.style.top = originalPosition.y + 'px';
+                }
+            }
+
+            draggedPiece = null;
         }
 
         function setPosition(fen) {
@@ -108,7 +240,10 @@
             const rows = position.split('/');
             
             // Limpiar el tablero
-            Array.from(squares).forEach(square => square.textContent = '');
+            Array.from(squares).forEach(square => {
+                const piece = square.querySelector('.piece');
+                if (piece) piece.remove();
+            });
             
             // Colocar piezas
             rows.forEach((row, rowIndex) => {
@@ -116,10 +251,10 @@
                 for (const char of row) {
                     if (isNaN(char)) {
                         const square = squares[rowIndex * 8 + colIndex];
-                        const piece = document.createElement('div');
+                        const piece = document.createElement('img');
                         piece.className = 'piece';
-                        piece.textContent = PIECES[char];
-                        piece.style.color = char === char.toUpperCase() ? 'white' : 'black';
+                        piece.src = `pieces/${PIECES_SVG[char]}`;
+                        piece.draggable = false;
                         square.appendChild(piece);
                         colIndex++;
                     } else {
