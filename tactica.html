@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-03-01 05:45:14 UTC -->
+    <!-- Created by ChessGrijas on 2025-03-01 05:52:53 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
         .board{width:400px;height:400px;margin:0 auto;margin-top:50px;display:grid;grid-template-columns:repeat(8,1fr);border:2px solid #333;position:relative}
@@ -47,10 +47,15 @@
                 const response = await fetch('tacticas.pgn');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const pgnText = await response.text();
+                
                 const games = pgnText.split(/\n\n(?=\[Event)/).filter(game => game.trim());
-                exercises = games.map(game => {
+                console.log('Número de juegos encontrados:', games.length);
+
+                exercises = games.map((game, index) => {
+                    console.log(`Procesando juego ${index + 1}:`, game);
                     const fenMatch = game.match(/\[FEN "([^"]+)"\]/);
                     const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                    
                     const moveSection = game.split(/\r?\n\r?\n/).pop().trim();
                     const cleanMoves = moveSection
                         .replace(/\{[^}]*\}/g, '')
@@ -59,12 +64,21 @@
                         .replace(/\s+/g, ' ')
                         .replace(/\s*\*/g, '')
                         .trim();
+
                     const solution = cleanMoves.split(/\s+/)
                         .filter(move => move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2');
-                    return {fen, solution};
+
+                    return { fen, solution };
                 });
-                console.log('Ejercicios cargados:', exercises);
-                if (exercises.length > 0) loadExercise(0);
+
+                console.log('Ejercicios procesados:', exercises);
+                
+                if (exercises.length > 0) {
+                    showMessage(`Ejercicio 1 de ${exercises.length}`);
+                    loadExercise(0);
+                } else {
+                    showMessage('No se encontraron ejercicios en el archivo PGN', true);
+                }
             } catch (error) {
                 console.error('Error loading PGN file:', error);
                 showMessage('Error al cargar el archivo de tácticas', true);
@@ -138,6 +152,8 @@
                         showMessage('Error en el movimiento: ' + move, true);
                     }
                 }, 500);
+            } else {
+                showMessage('¡Ejercicio completado! Puedes pasar al siguiente.', false);
             }
         }
 
@@ -147,13 +163,19 @@
             if (!piece) return;
             const pieceColor = piece.src.includes('w') ? 'w' : 'b';
             if (!isPlayerTurn || pieceColor !== chess.turn()) return;
+            
             draggedPiece = piece;
             originalSquare = piece.parentElement;
+            
+            // Ocultar la pieza original mientras se arrastra
+            draggedPiece.style.opacity = '0';
+            
             const rect = piece.getBoundingClientRect();
             dragOffset = {
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top
             };
+            
             piece.classList.add('dragging');
             const ghost = piece.cloneNode(true);
             ghost.style.position = 'fixed';
@@ -193,11 +215,16 @@
 
         function stopDragging(e) {
             if (!draggedPiece) return;
+            
+            // Restaurar la opacidad de la pieza original
+            draggedPiece.style.opacity = '1';
+
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
+
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
                 const move = {
                     from: getSquareNotation(parseInt(originalSquare.dataset.row), 
@@ -211,7 +238,19 @@
                         setPosition(chess.fen());
                         isPlayerTurn = false;
                         updateTurnIndicator();
-                        makeComputerMove();
+                        
+                        // Comprobar si el movimiento es correcto
+                        const exercise = exercises[currentExercise];
+                        const expectedMove = exercise.solution[currentMoveIndex];
+                        if (result.san === expectedMove) {
+                            showMessage('¡Movimiento correcto!');
+                            makeComputerMove();
+                        } else {
+                            showMessage('Movimiento incorrecto. Inténtalo de nuevo.', true);
+                            chess.undo();
+                            setPosition(chess.fen());
+                            isPlayerTurn = true;
+                        }
                     } else {
                         originalSquare.appendChild(draggedPiece);
                     }
@@ -221,6 +260,7 @@
             } else {
                 originalSquare.appendChild(draggedPiece);
             }
+
             if (draggedPiece.ghost) {
                 draggedPiece.ghost.remove();
                 delete draggedPiece.ghost;
@@ -274,7 +314,7 @@
             currentMoveIndex = 0;
             isPlayerTurn = chess.turn() === 'w';
             updateTurnIndicator();
-            showMessage('');
+            showMessage(`Ejercicio ${index + 1} de ${exercises.length}`);
             if (!isPlayerTurn) makeComputerMove();
         }
 
@@ -295,13 +335,4 @@
         });
         document.getElementById('next').addEventListener('click', () => {
             if (currentExercise < exercises.length - 1) {
-                currentExercise++;
-                loadExercise(currentExercise);
-            }
-        });
-        document.getElementById('reset').addEventListener('click', () => {
-            loadExercise(currentExercise);
-        });
-    </script>
-</body>
-</html>
+                currentExercise
