@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-02-28 18:44:39 UTC -->
+    <!-- Created by ChessGrijas on 2025-03-01 05:27:09 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
         .board {
@@ -153,25 +153,38 @@
                 }
                 const pgnText = await response.text();
                 
-                // Dividir el archivo PGN en juegos individuales
-                const games = pgnText.split('\n\n[').map((game, index) => 
-                    index === 0 ? game : '[' + game);
+                // Dividir el archivo PGN en juegos individuales de manera más robusta
+                const games = pgnText.split(/\n\n(?=\[Event)/).filter(game => game.trim());
 
                 exercises = games.map(game => {
-                    // Extraer FEN y movimientos
-                    const fenMatch = game.match(/\[FEN "(.*?)"\]/);
+                    // Extraer FEN
+                    const fenMatch = game.match(/\[FEN "([^"]+)"\]/);
                     const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
                     
-                    // Extraer los movimientos del PGN
-                    let moveText = game.split('\n\n').pop().trim();
-                    moveText = moveText.replace(/\d+\.(\.\.)?/g, '').replace(/\*/g, '').trim();
-                    const solution = moveText.split(/\s+/).filter(move => move.length > 0);
+                    // Extraer los movimientos del PGN (todo lo que viene después de la última línea de metadatos)
+                    const moveSection = game.split(/\r?\n\r?\n/).pop().trim();
+                    
+                    // Limpiar el texto de movimientos
+                    const cleanMoves = moveSection
+                        .replace(/\{[^}]*\}/g, '') // Eliminar comentarios
+                        .replace(/\([^)]*\)/g, '') // Eliminar variantes
+                        .replace(/\d+\./g, '')     // Eliminar números de movimiento
+                        .replace(/\s+/g, ' ')      // Normalizar espacios
+                        .replace(/\s*\*/g, '')     // Eliminar marcador de final
+                        .trim();
+
+                    const solution = cleanMoves.split(/\s+/).filter(move => 
+                        move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2'
+                    );
 
                     return { fen, solution };
                 });
 
-                // Iniciar el primer ejercicio
-                loadExercise(0);
+                console.log('Ejercicios cargados:', exercises); // Para depuración
+                
+                if (exercises.length > 0) {
+                    loadExercise(0);
+                }
             } catch (error) {
                 console.error('Error loading PGN file:', error);
                 showMessage('Error al cargar el archivo de tácticas', true);
@@ -226,22 +239,34 @@
 
         function makeComputerMove() {
             const exercise = exercises[currentExercise];
+            if (!exercise) {
+                console.error('No exercise found at index:', currentExercise);
+                return;
+            }
+
             const moves = exercise.solution;
             
             if (currentMoveIndex < moves.length) {
                 const move = moves[currentMoveIndex];
+                console.log('Intentando mover:', move); // Para depuración
+
                 setTimeout(() => {
                     try {
-                        const result = chess.move(move);
+                        // Manejar movimientos de negras que empiezan con ...
+                        const cleanMove = move.replace(/^\.../, '');
+                        const result = chess.move(cleanMove);
+                        
                         if (result) {
                             setPosition(chess.fen());
                             currentMoveIndex++;
                             isPlayerTurn = true;
                             updateTurnIndicator();
                         } else {
+                            console.error('Movimiento inválido:', move);
                             showMessage('Error en el movimiento: ' + move, true);
                         }
                     } catch (e) {
+                        console.error('Error al hacer el movimiento:', move, e);
                         showMessage('Error en el movimiento: ' + move, true);
                     }
                 }, 500);
@@ -407,49 +432,16 @@
         }
 
         function loadExercise(index) {
+            if (index < 0 || index >= exercises.length) {
+                console.error('Índice de ejercicio inválido:', index);
+                return;
+            }
+
             const exercise = exercises[index];
+            if (!exercise) {
+                console.error('No se encontró el ejercicio:', index);
+                return;
+            }
+
             chess = new Chess();
-            chess.load(exercise.fen);
-            setPosition(chess.fen());
-            currentMoveIndex = 0;
-            isPlayerTurn = chess.turn() === 'w';
-            updateTurnIndicator();
-            showMessage('');
-
-            if (!isPlayerTurn) {
-                makeComputerMove();
-            }
-        }
-
-        // Inicialización
-        createBoard();
-        loadPGNFile().catch(error => {
-            console.error('Error in initialization:', error);
-            showMessage('Error al inicializar el tablero', true);
-        });
-
-        // Event listeners
-        document.addEventListener('mousedown', startDragging);
-        document.addEventListener('mousemove', updateDragPosition);
-        document.addEventListener('mouseup', stopDragging);
-
-        document.getElementById('prev').addEventListener('click', () => {
-            if (currentExercise > 0) {
-                currentExercise--;
-                loadExercise(currentExercise);
-            }
-        });
-
-        document.getElementById('next').addEventListener('click', () => {
-            if (currentExercise < exercises.length - 1) {
-                currentExercise++;
-                loadExercise(currentExercise);
-            }
-        });
-
-        document.getElementById('reset').addEventListener('click', () => {
-            loadExercise(currentExercise);
-        });
-    </script>
-</body>
-</html>
+            chess.load(
