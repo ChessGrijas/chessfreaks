@@ -4,110 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-03-01 05:27:09 UTC -->
+    <!-- Created by ChessGrijas on 2025-03-01 05:45:14 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
-        .board {
-            width: 400px;
-            height: 400px;
-            margin: 0 auto;
-            margin-top: 50px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            border: 2px solid #333;
-            position: relative;
-        }
-        
-        .square {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        
-        .white {
-            background-color: #f0d9b5;
-        }
-        
-        .black {
-            background-color: #b58863;
-        }
-        
-        .controls {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .controls button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #2f3542;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        
-        .controls button:hover {
-            background-color: #3f4658;
-        }
-
-        .piece {
-            width: 45px;
-            height: 45px;
-            position: absolute;
-            cursor: grab;
-            user-select: none;
-            z-index: 1;
-            transition: transform 0.1s;
-        }
-
-        .piece.dragging {
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .piece:active {
-            cursor: grabbing;
-        }
-
-        .highlight {
-            background-color: rgba(255, 255, 0, 0.4);
-        }
-
-        .coordinates {
-            position: absolute;
-            font-size: 12px;
-            color: #666;
-            pointer-events: none;
-        }
-
-        .coordinates.file {
-            bottom: -20px;
-            right: 5px;
-        }
-
-        .coordinates.rank {
-            left: -20px;
-            top: 5px;
-        }
-
-        .message {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 18px;
-            color: #333;
-        }
-
-        .turn-indicator {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 16px;
-            color: #666;
-        }
+        .board{width:400px;height:400px;margin:0 auto;margin-top:50px;display:grid;grid-template-columns:repeat(8,1fr);border:2px solid #333;position:relative}
+        .square{width:50px;height:50px;display:flex;justify-content:center;align-items:center;position:relative}
+        .white{background-color:#f0d9b5}
+        .black{background-color:#b58863}
+        .controls{text-align:center;margin-top:20px}
+        .controls button{padding:10px 20px;margin:5px;font-size:16px;cursor:pointer;background-color:#2f3542;color:white;border:none;border-radius:4px}
+        .controls button:hover{background-color:#3f4658}
+        .piece{width:45px;height:45px;position:absolute;cursor:grab;user-select:none;z-index:1;transition:transform 0.1s}
+        .piece.dragging{z-index:1000;pointer-events:none}
+        .piece:active{cursor:grabbing}
+        .highlight{background-color:rgba(255,255,0,0.4)}
+        .coordinates{position:absolute;font-size:12px;color:#666;pointer-events:none}
+        .coordinates.file{bottom:-20px;right:5px}
+        .coordinates.rank{left:-20px;top:5px}
+        .message{text-align:center;margin-top:20px;font-size:18px;color:#333}
+        .turn-indicator{text-align:center;margin-top:10px;font-size:16px;color:#666}
     </style>
 </head>
 <body>
@@ -119,72 +34,37 @@
         <button id="next">Siguiente</button>
         <button id="reset">Reiniciar</button>
     </div>
-
     <script>
         const PIECES_SVG = {
-            'k': 'bK.svg',
-            'q': 'bQ.svg',
-            'r': 'bR.svg',
-            'b': 'bB.svg',
-            'n': 'bN.svg',
-            'p': 'bP.svg',
-            'K': 'wK.svg',
-            'Q': 'wQ.svg',
-            'R': 'wR.svg',
-            'B': 'wB.svg',
-            'N': 'wN.svg',
-            'P': 'wP.svg'
+            'k':'bK.svg','q':'bQ.svg','r':'bR.svg','b':'bB.svg','n':'bN.svg','p':'bP.svg',
+            'K':'wK.svg','Q':'wQ.svg','R':'wR.svg','B':'wB.svg','N':'wN.svg','P':'wP.svg'
         };
-
-        let exercises = [];
-        let currentExercise = 0;
-        let draggedPiece = null;
-        let dragOffset = { x: 0, y: 0 };
-        let originalSquare = null;
-        let chess = new Chess();
-        let currentMoveIndex = 0;
-        let isPlayerTurn = true;
+        let exercises = [], currentExercise = 0, draggedPiece = null, dragOffset = {x:0,y:0},
+            originalSquare = null, chess = new Chess(), currentMoveIndex = 0, isPlayerTurn = true;
 
         async function loadPGNFile() {
             try {
                 const response = await fetch('tacticas.pgn');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const pgnText = await response.text();
-                
-                // Dividir el archivo PGN en juegos individuales de manera más robusta
                 const games = pgnText.split(/\n\n(?=\[Event)/).filter(game => game.trim());
-
                 exercises = games.map(game => {
-                    // Extraer FEN
                     const fenMatch = game.match(/\[FEN "([^"]+)"\]/);
                     const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-                    
-                    // Extraer los movimientos del PGN (todo lo que viene después de la última línea de metadatos)
                     const moveSection = game.split(/\r?\n\r?\n/).pop().trim();
-                    
-                    // Limpiar el texto de movimientos
                     const cleanMoves = moveSection
-                        .replace(/\{[^}]*\}/g, '') // Eliminar comentarios
-                        .replace(/\([^)]*\)/g, '') // Eliminar variantes
-                        .replace(/\d+\./g, '')     // Eliminar números de movimiento
-                        .replace(/\s+/g, ' ')      // Normalizar espacios
-                        .replace(/\s*\*/g, '')     // Eliminar marcador de final
+                        .replace(/\{[^}]*\}/g, '')
+                        .replace(/\([^)]*\)/g, '')
+                        .replace(/\d+\./g, '')
+                        .replace(/\s+/g, ' ')
+                        .replace(/\s*\*/g, '')
                         .trim();
-
-                    const solution = cleanMoves.split(/\s+/).filter(move => 
-                        move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2'
-                    );
-
-                    return { fen, solution };
+                    const solution = cleanMoves.split(/\s+/)
+                        .filter(move => move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2');
+                    return {fen, solution};
                 });
-
-                console.log('Ejercicios cargados:', exercises); // Para depuración
-                
-                if (exercises.length > 0) {
-                    loadExercise(0);
-                }
+                console.log('Ejercicios cargados:', exercises);
+                if (exercises.length > 0) loadExercise(0);
             } catch (error) {
                 console.error('Error loading PGN file:', error);
                 showMessage('Error al cargar el archivo de tácticas', true);
@@ -194,14 +74,12 @@
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
-            
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
                     square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
-                    
                     if (col === 0) {
                         const rankCoord = document.createElement('div');
                         rankCoord.className = 'coordinates rank';
@@ -214,15 +92,14 @@
                         fileCoord.textContent = String.fromCharCode(97 + col);
                         square.appendChild(fileCoord);
                     }
-
                     board.appendChild(square);
                 }
             }
         }
 
         function updateTurnIndicator() {
-            const turnText = chess.turn() === 'w' ? 'Blancas' : 'Negras';
-            document.getElementById('turnIndicator').textContent = `Turno: ${turnText}`;
+            document.getElementById('turnIndicator').textContent = 
+                `Turno: ${chess.turn() === 'w' ? 'Blancas' : 'Negras'}`;
         }
 
         function showMessage(text, isError = false) {
@@ -232,9 +109,7 @@
         }
 
         function getSquareNotation(row, col) {
-            const file = String.fromCharCode(97 + col);
-            const rank = 8 - row;
-            return `${file}${rank}`;
+            return `${String.fromCharCode(97 + col)}${8 - row}`;
         }
 
         function makeComputerMove() {
@@ -243,19 +118,12 @@
                 console.error('No exercise found at index:', currentExercise);
                 return;
             }
-
-            const moves = exercise.solution;
-            
-            if (currentMoveIndex < moves.length) {
-                const move = moves[currentMoveIndex];
-                console.log('Intentando mover:', move); // Para depuración
-
+            if (currentMoveIndex < exercise.solution.length) {
+                const move = exercise.solution[currentMoveIndex];
                 setTimeout(() => {
                     try {
-                        // Manejar movimientos de negras que empiezan con ...
                         const cleanMove = move.replace(/^\.../, '');
                         const result = chess.move(cleanMove);
-                        
                         if (result) {
                             setPosition(chess.fen());
                             currentMoveIndex++;
@@ -277,101 +145,66 @@
             if (e.button !== 0) return;
             const piece = e.target.closest('.piece');
             if (!piece) return;
-
             const pieceColor = piece.src.includes('w') ? 'w' : 'b';
-            if (!isPlayerTurn || pieceColor !== chess.turn()) {
-                return;
-            }
-
+            if (!isPlayerTurn || pieceColor !== chess.turn()) return;
             draggedPiece = piece;
             originalSquare = piece.parentElement;
-            
             const rect = piece.getBoundingClientRect();
             dragOffset = {
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top
             };
-
             piece.classList.add('dragging');
-            
             const ghost = piece.cloneNode(true);
             ghost.style.position = 'fixed';
             ghost.style.pointerEvents = 'none';
             ghost.style.opacity = '0.8';
             document.body.appendChild(ghost);
             draggedPiece.ghost = ghost;
-
             updateDragPosition(e);
         }
 
         function updateDragPosition(e) {
             if (!draggedPiece || !draggedPiece.ghost) return;
-
             const ghost = draggedPiece.ghost;
-            const x = e.clientX - dragOffset.x;
-            const y = e.clientY - dragOffset.y;
-
-            ghost.style.left = x + 'px';
-            ghost.style.top = y + 'px';
-
+            ghost.style.left = (e.clientX - dragOffset.x) + 'px';
+            ghost.style.top = (e.clientY - dragOffset.y) + 'px';
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
-            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
-
             const squares = board.getElementsByClassName('square');
             Array.from(squares).forEach(s => s.classList.remove('highlight'));
-            
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
                 const fromSquare = getSquareNotation(
                     parseInt(originalSquare.dataset.row),
                     parseInt(originalSquare.dataset.col)
                 );
                 const toSquare = getSquareNotation(row, col);
-                
-                const move = {
-                    from: fromSquare,
-                    to: toSquare,
-                    promotion: 'q'
-                };
-
                 try {
                     const testChess = new Chess(chess.fen());
-                    if (testChess.move(move)) {
-                        const targetSquare = squares[row * 8 + col];
-                        targetSquare.classList.add('highlight');
+                    if (testChess.move({from: fromSquare, to: toSquare, promotion: 'q'})) {
+                        squares[row * 8 + col].classList.add('highlight');
                     }
-                } catch (e) {
-                    // Movimiento inválido, no resaltar
-                }
+                } catch (e) {}
             }
         }
 
         function stopDragging(e) {
             if (!draggedPiece) return;
-
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
-            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
-
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
-                const fromSquare = getSquareNotation(
-                    parseInt(originalSquare.dataset.row),
-                    parseInt(originalSquare.dataset.col)
-                );
-                const toSquare = getSquareNotation(row, col);
-
                 const move = {
-                    from: fromSquare,
-                    to: toSquare,
+                    from: getSquareNotation(parseInt(originalSquare.dataset.row), 
+                                         parseInt(originalSquare.dataset.col)),
+                    to: getSquareNotation(row, col),
                     promotion: 'q'
                 };
-
                 try {
                     const result = chess.move(move);
                     if (result) {
@@ -388,17 +221,13 @@
             } else {
                 originalSquare.appendChild(draggedPiece);
             }
-
             if (draggedPiece.ghost) {
                 draggedPiece.ghost.remove();
                 delete draggedPiece.ghost;
             }
-            
             draggedPiece.classList.remove('dragging');
             Array.from(board.getElementsByClassName('square')).forEach(s => 
-                s.classList.remove('highlight')
-            );
-            
+                s.classList.remove('highlight'));
             draggedPiece = null;
         }
 
@@ -407,12 +236,10 @@
             const squares = board.getElementsByClassName('square');
             const position = fen.split(' ')[0];
             const rows = position.split('/');
-            
             Array.from(squares).forEach(square => {
                 const piece = square.querySelector('.piece');
                 if (piece) piece.remove();
             });
-            
             rows.forEach((row, rowIndex) => {
                 let colIndex = 0;
                 for (const char of row) {
@@ -436,12 +263,45 @@
                 console.error('Índice de ejercicio inválido:', index);
                 return;
             }
-
             const exercise = exercises[index];
             if (!exercise) {
                 console.error('No se encontró el ejercicio:', index);
                 return;
             }
-
             chess = new Chess();
-            chess.load(
+            chess.load(exercise.fen);
+            setPosition(chess.fen());
+            currentMoveIndex = 0;
+            isPlayerTurn = chess.turn() === 'w';
+            updateTurnIndicator();
+            showMessage('');
+            if (!isPlayerTurn) makeComputerMove();
+        }
+
+        createBoard();
+        loadPGNFile().catch(error => {
+            console.error('Error in initialization:', error);
+            showMessage('Error al inicializar el tablero', true);
+        });
+
+        document.addEventListener('mousedown', startDragging);
+        document.addEventListener('mousemove', updateDragPosition);
+        document.addEventListener('mouseup', stopDragging);
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentExercise > 0) {
+                currentExercise--;
+                loadExercise(currentExercise);
+            }
+        });
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                loadExercise(currentExercise);
+            }
+        });
+        document.getElementById('reset').addEventListener('click', () => {
+            loadExercise(currentExercise);
+        });
+    </script>
+</body>
+</html>
