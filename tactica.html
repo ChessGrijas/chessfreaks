@@ -4,126 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-03-01 05:57:38 UTC -->
+    <!-- Created by ChessGrijas on 2025-03-01 06:03:41 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
-        .board {
-            width: 400px;
-            height: 400px;
-            margin: 0 auto;
-            margin-top: 50px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            border: 2px solid #333;
-            position: relative;
-        }
-        
-        .square {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        
-        .white {
-            background-color: #f0d9b5;
-        }
-        
-        .black {
-            background-color: #b58863;
-        }
-        
-        .controls {
-            text-align: center;
-            margin-top: 20px;
-        }
-        
-        .controls button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #2f3542;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-        
-        .controls button:hover {
-            background-color: #3f4658;
-        }
-
-        .piece {
-            width: 45px;
-            height: 45px;
-            position: absolute;
-            cursor: grab;
-            user-select: none;
-            z-index: 1;
-            transition: transform 0.1s;
-        }
-
-        .piece.dragging {
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .piece:active {
-            cursor: grabbing;
-        }
-
-        .highlight {
-            background-color: rgba(255, 255, 0, 0.4);
-        }
-
-        .coordinates {
-            position: absolute;
-            font-size: 12px;
-            color: #666;
-            pointer-events: none;
-        }
-
-        .coordinates.file {
-            bottom: -20px;
-            right: 5px;
-        }
-
-        .coordinates.rank {
-            left: -20px;
-            top: 5px;
-        }
-
-        .message {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 18px;
-            color: #333;
-        }
-
-        .turn-indicator {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 16px;
-            color: #666;
-        }
-
-        /* Asegurar que las piezas estén centradas en las casillas */
-        .square {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            box-sizing: border-box;
-        }
-
-        /* Ajustar el contenedor de las piezas */
-        .piece-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
+        body {font-family: Arial, sans-serif;}
+        .board {width:400px;height:400px;margin:0 auto;margin-top:50px;display:grid;grid-template-columns:repeat(8, 1fr);border:2px solid #333;position:relative}
+        .square {width:50px;height:50px;display:flex;justify-content:center;align-items:center;position:relative}
+        .white {background-color:#f0d9b5}
+        .black {background-color:#b58863}
+        .controls {text-align:center;margin-top:20px}
+        .controls button {padding:10px 20px;margin:5px;font-size:16px;cursor:pointer;background-color:#2f3542;color:white;border:none;border-radius:4px}
+        .controls button:hover {background-color:#3f4658}
+        .piece {width:45px;height:45px;position:absolute;cursor:grab;user-select:none;z-index:1;transition:transform 0.1s}
+        .piece.dragging {z-index:1000;pointer-events:none}
+        .piece:active {cursor:grabbing}
+        .highlight {background-color:rgba(255,255,0,0.4)}
+        .coordinates {position:absolute;font-size:12px;color:#666;pointer-events:none}
+        .coordinates.file {bottom:-20px;right:5px}
+        .coordinates.rank {left:-20px;top:5px}
+        .message {text-align:center;margin-top:20px;font-size:18px;color:#333}
+        .turn-indicator {text-align:center;margin-top:10px;font-size:16px;color:#666}
     </style>
 </head>
 <body>
@@ -137,43 +37,22 @@
     </div>
     <script>
         const PIECES_SVG = {
-            'k': 'bK.svg',
-            'q': 'bQ.svg',
-            'r': 'bR.svg',
-            'b': 'bB.svg',
-            'n': 'bN.svg',
-            'p': 'bP.svg',
-            'K': 'wK.svg',
-            'Q': 'wQ.svg',
-            'R': 'wR.svg',
-            'B': 'wB.svg',
-            'N': 'wN.svg',
-            'P': 'wP.svg'
+            'k':'bK.svg','q':'bQ.svg','r':'bR.svg','b':'bB.svg','n':'bN.svg','p':'bP.svg',
+            'K':'wK.svg','Q':'wQ.svg','R':'wR.svg','B':'wB.svg','N':'wN.svg','P':'wP.svg'
         };
-
-        let exercises = [];
-        let currentExercise = 0;
-        let draggedPiece = null;
-        let dragOffset = { x: 0, y: 0 };
-        let originalSquare = null;
-        let chess = new Chess();
-        let currentMoveIndex = 0;
-        let isPlayerTurn = true;
+        let exercises = [], currentExercise = 0, draggedPiece = null, dragOffset = {x:0,y:0},
+            originalSquare = null, chess = new Chess(), currentMoveIndex = 0, isPlayerTurn = true;
 
         async function loadPGNFile() {
             try {
                 const response = await fetch('tacticas.pgn');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const pgnText = await response.text();
-                
                 const games = pgnText.split(/\n\n(?=\[Event)/).filter(game => game.trim());
                 console.log('Número de juegos encontrados:', games.length);
-
                 exercises = games.map((game, index) => {
-                    console.log(`Procesando juego ${index + 1}:`, game);
                     const fenMatch = game.match(/\[FEN "([^"]+)"\]/);
                     const fen = fenMatch ? fenMatch[1] : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-                    
                     const moveSection = game.split(/\r?\n\r?\n/).pop().trim();
                     const cleanMoves = moveSection
                         .replace(/\{[^}]*\}/g, '')
@@ -182,15 +61,10 @@
                         .replace(/\s+/g, ' ')
                         .replace(/\s*\*/g, '')
                         .trim();
-
                     const solution = cleanMoves.split(/\s+/)
                         .filter(move => move && move !== '1-0' && move !== '0-1' && move !== '1/2-1/2');
-
-                    return { fen, solution };
+                    return {fen, solution};
                 });
-
-                console.log('Ejercicios procesados:', exercises);
-                
                 if (exercises.length > 0) {
                     showMessage(`Ejercicio 1 de ${exercises.length}`);
                     loadExercise(0);
@@ -206,14 +80,12 @@
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
-            
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
                     square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
-                    
                     if (col === 0) {
                         const rankCoord = document.createElement('div');
                         rankCoord.className = 'coordinates rank';
@@ -226,19 +98,13 @@
                         fileCoord.textContent = String.fromCharCode(97 + col);
                         square.appendChild(fileCoord);
                     }
-
-                    const pieceContainer = document.createElement('div');
-                    pieceContainer.className = 'piece-container';
-                    square.appendChild(pieceContainer);
-                    
                     board.appendChild(square);
                 }
             }
         }
 
         function updateTurnIndicator() {
-            document.getElementById('turnIndicator').textContent = 
-                `Turno: ${chess.turn() === 'w' ? 'Blancas' : 'Negras'}`;
+            document.getElementById('turnIndicator').textContent = `Turno: ${chess.turn() === 'w' ? 'Blancas' : 'Negras'}`;
         }
 
         function showMessage(text, isError = false) {
@@ -253,33 +119,29 @@
 
         function makeComputerMove() {
             const exercise = exercises[currentExercise];
-            if (!exercise) {
-                console.error('No exercise found at index:', currentExercise);
-                return;
-            }
-            if (currentMoveIndex < exercise.solution.length) {
-                const move = exercise.solution[currentMoveIndex];
-                setTimeout(() => {
-                    try {
-                        const cleanMove = move.replace(/^\.../, '');
-                        const result = chess.move(cleanMove);
-                        if (result) {
-                            setPosition(chess.fen());
-                            currentMoveIndex++;
-                            isPlayerTurn = true;
-                            updateTurnIndicator();
-                        } else {
-                            console.error('Movimiento inválido:', move);
-                            showMessage('Error en el movimiento: ' + move, true);
+            if (!exercise || currentMoveIndex >= exercise.solution.length) return;
+            const move = exercise.solution[currentMoveIndex];
+            setTimeout(() => {
+                try {
+                    const cleanMove = move.replace(/^\.../, '');
+                    const result = chess.move(cleanMove);
+                    if (result) {
+                        setPosition(chess.fen());
+                        currentMoveIndex++;
+                        isPlayerTurn = true;
+                        updateTurnIndicator();
+                        if (currentMoveIndex >= exercise.solution.length) {
+                            showMessage('¡Ejercicio completado! Puedes pasar al siguiente.');
                         }
-                    } catch (e) {
-                        console.error('Error al hacer el movimiento:', move, e);
+                    } else {
+                        console.error('Movimiento inválido:', move);
                         showMessage('Error en el movimiento: ' + move, true);
                     }
-                }, 500);
-            } else {
-                showMessage('¡Ejercicio completado! Puedes pasar al siguiente.', false);
-            }
+                } catch (e) {
+                    console.error('Error al hacer el movimiento:', move, e);
+                    showMessage('Error en el movimiento: ' + move, true);
+                }
+            }, 500);
         }
 
         function startDragging(e) {
@@ -290,16 +152,11 @@
             if (!isPlayerTurn || pieceColor !== chess.turn()) return;
             
             draggedPiece = piece;
-            originalSquare = piece.closest('.square');
-            
-            // Ocultar la pieza original mientras se arrastra
+            originalSquare = piece.parentElement;
             draggedPiece.style.opacity = '0';
             
             const rect = piece.getBoundingClientRect();
-            dragOffset = {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            dragOffset = {x: e.clientX - rect.left, y: e.clientY - rect.top};
             
             piece.classList.add('dragging');
             const ghost = piece.cloneNode(true);
@@ -320,10 +177,9 @@
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
-            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
-            
+
             const squares = board.getElementsByClassName('square');
             Array.from(squares).forEach(s => s.classList.remove('highlight'));
             
@@ -333,7 +189,6 @@
                     parseInt(originalSquare.dataset.col)
                 );
                 const toSquare = getSquareNotation(row, col);
-                
                 try {
                     const testChess = new Chess(chess.fen());
                     if (testChess.move({from: fromSquare, to: toSquare, promotion: 'q'})) {
@@ -345,14 +200,11 @@
 
         function stopDragging(e) {
             if (!draggedPiece) return;
-            
-            // Restaurar la opacidad de la pieza original
             draggedPiece.style.opacity = '1';
 
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
-            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
@@ -367,29 +219,26 @@
                     const result = chess.move(move);
                     if (result) {
                         setPosition(chess.fen());
-                        isPlayerTurn = false;
-                        updateTurnIndicator();
-                        
-                        // Comprobar si el movimiento es correcto
                         const exercise = exercises[currentExercise];
                         const expectedMove = exercise.solution[currentMoveIndex];
                         if (result.san === expectedMove) {
                             showMessage('¡Movimiento correcto!');
+                            isPlayerTurn = false;
+                            updateTurnIndicator();
                             makeComputerMove();
                         } else {
                             showMessage('Movimiento incorrecto. Inténtalo de nuevo.', true);
                             chess.undo();
                             setPosition(chess.fen());
-                            isPlayerTurn = true;
                         }
                     } else {
-                        originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
+                        originalSquare.appendChild(draggedPiece);
                     }
                 } catch (e) {
-                    originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
+                    originalSquare.appendChild(draggedPiece);
                 }
             } else {
-                originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
+                originalSquare.appendChild(draggedPiece);
             }
 
             if (draggedPiece.ghost) {
@@ -409,8 +258,63 @@
             const rows = position.split('/');
             
             Array.from(squares).forEach(square => {
-                const pieceContainer = square.querySelector('.piece-container');
-                if (pieceContainer) {
-                    pieceContainer.innerHTML = '';
-                }
+                const piece = square.querySelector('.piece');
+                if (piece) piece.remove();
+            });
             
+            rows.forEach((row, rowIndex) => {
+                let colIndex = 0;
+                for (const char of row) {
+                    if (isNaN(char)) {
+                        const square = squares[rowIndex * 8 + colIndex];
+                        const piece = document.createElement('img');
+                        piece.className = 'piece';
+                        piece.src = `piezas/${PIECES_SVG[char]}`;
+                        piece.draggable = false;
+                        square.appendChild(piece);
+                        colIndex++;
+                    } else {
+                        colIndex += parseInt(char);
+                    }
+                }
+            });
+        }
+
+        function loadExercise(index) {
+            if (index < 0 || index >= exercises.length) return;
+            chess = new Chess();
+            const exercise = exercises[index];
+            chess.load(exercise.fen);
+            setPosition(chess.fen());
+            currentMoveIndex = 0;
+            isPlayerTurn = chess.turn() === 'w';
+            updateTurnIndicator();
+            showMessage(`Ejercicio ${index + 1} de ${exercises.length}`);
+            if (!isPlayerTurn) makeComputerMove();
+        }
+
+        createBoard();
+        loadPGNFile().catch(error => {
+            console.error('Error in initialization:', error);
+            showMessage('Error al inicializar el tablero', true);
+        });
+
+        document.addEventListener('mousedown', startDragging);
+        document.addEventListener('mousemove', updateDragPosition);
+        document.addEventListener('mouseup', stopDragging);
+        document.getElementById('prev').addEventListener('click', () => {
+            if (currentExercise > 0) {
+                currentExercise--;
+                loadExercise(currentExercise);
+            }
+        });
+        document.getElementById('next').addEventListener('click', () => {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                loadExercise(currentExercise);
+            }
+        });
+        document.getElementById('reset').addEventListener('click', () => loadExercise(currentExercise));
+    </script>
+</body>
+</html>
