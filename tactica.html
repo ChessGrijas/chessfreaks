@@ -4,25 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tablero de Ajedrez</title>
-    <!-- Created by ChessGrijas on 2025-03-01 05:52:53 UTC -->
+    <!-- Created by ChessGrijas on 2025-03-01 05:57:38 UTC -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
-        .board{width:400px;height:400px;margin:0 auto;margin-top:50px;display:grid;grid-template-columns:repeat(8,1fr);border:2px solid #333;position:relative}
-        .square{width:50px;height:50px;display:flex;justify-content:center;align-items:center;position:relative}
-        .white{background-color:#f0d9b5}
-        .black{background-color:#b58863}
-        .controls{text-align:center;margin-top:20px}
-        .controls button{padding:10px 20px;margin:5px;font-size:16px;cursor:pointer;background-color:#2f3542;color:white;border:none;border-radius:4px}
-        .controls button:hover{background-color:#3f4658}
-        .piece{width:45px;height:45px;position:absolute;cursor:grab;user-select:none;z-index:1;transition:transform 0.1s}
-        .piece.dragging{z-index:1000;pointer-events:none}
-        .piece:active{cursor:grabbing}
-        .highlight{background-color:rgba(255,255,0,0.4)}
-        .coordinates{position:absolute;font-size:12px;color:#666;pointer-events:none}
-        .coordinates.file{bottom:-20px;right:5px}
-        .coordinates.rank{left:-20px;top:5px}
-        .message{text-align:center;margin-top:20px;font-size:18px;color:#333}
-        .turn-indicator{text-align:center;margin-top:10px;font-size:16px;color:#666}
+        .board {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            border: 2px solid #333;
+            position: relative;
+        }
+        
+        .square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .white {
+            background-color: #f0d9b5;
+        }
+        
+        .black {
+            background-color: #b58863;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2f3542;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        .controls button:hover {
+            background-color: #3f4658;
+        }
+
+        .piece {
+            width: 45px;
+            height: 45px;
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            z-index: 1;
+            transition: transform 0.1s;
+        }
+
+        .piece.dragging {
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .piece:active {
+            cursor: grabbing;
+        }
+
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.4);
+        }
+
+        .coordinates {
+            position: absolute;
+            font-size: 12px;
+            color: #666;
+            pointer-events: none;
+        }
+
+        .coordinates.file {
+            bottom: -20px;
+            right: 5px;
+        }
+
+        .coordinates.rank {
+            left: -20px;
+            top: 5px;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .turn-indicator {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Asegurar que las piezas estén centradas en las casillas */
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Ajustar el contenedor de las piezas */
+        .piece-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -36,11 +137,28 @@
     </div>
     <script>
         const PIECES_SVG = {
-            'k':'bK.svg','q':'bQ.svg','r':'bR.svg','b':'bB.svg','n':'bN.svg','p':'bP.svg',
-            'K':'wK.svg','Q':'wQ.svg','R':'wR.svg','B':'wB.svg','N':'wN.svg','P':'wP.svg'
+            'k': 'bK.svg',
+            'q': 'bQ.svg',
+            'r': 'bR.svg',
+            'b': 'bB.svg',
+            'n': 'bN.svg',
+            'p': 'bP.svg',
+            'K': 'wK.svg',
+            'Q': 'wQ.svg',
+            'R': 'wR.svg',
+            'B': 'wB.svg',
+            'N': 'wN.svg',
+            'P': 'wP.svg'
         };
-        let exercises = [], currentExercise = 0, draggedPiece = null, dragOffset = {x:0,y:0},
-            originalSquare = null, chess = new Chess(), currentMoveIndex = 0, isPlayerTurn = true;
+
+        let exercises = [];
+        let currentExercise = 0;
+        let draggedPiece = null;
+        let dragOffset = { x: 0, y: 0 };
+        let originalSquare = null;
+        let chess = new Chess();
+        let currentMoveIndex = 0;
+        let isPlayerTurn = true;
 
         async function loadPGNFile() {
             try {
@@ -88,12 +206,14 @@
         function createBoard() {
             const board = document.getElementById('board');
             board.innerHTML = '';
+            
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const square = document.createElement('div');
                     square.className = `square ${(row + col) % 2 ? 'black' : 'white'}`;
                     square.dataset.row = row;
                     square.dataset.col = col;
+                    
                     if (col === 0) {
                         const rankCoord = document.createElement('div');
                         rankCoord.className = 'coordinates rank';
@@ -106,6 +226,11 @@
                         fileCoord.textContent = String.fromCharCode(97 + col);
                         square.appendChild(fileCoord);
                     }
+
+                    const pieceContainer = document.createElement('div');
+                    pieceContainer.className = 'piece-container';
+                    square.appendChild(pieceContainer);
+                    
                     board.appendChild(square);
                 }
             }
@@ -165,7 +290,7 @@
             if (!isPlayerTurn || pieceColor !== chess.turn()) return;
             
             draggedPiece = piece;
-            originalSquare = piece.parentElement;
+            originalSquare = piece.closest('.square');
             
             // Ocultar la pieza original mientras se arrastra
             draggedPiece.style.opacity = '0';
@@ -191,19 +316,24 @@
             const ghost = draggedPiece.ghost;
             ghost.style.left = (e.clientX - dragOffset.x) + 'px';
             ghost.style.top = (e.clientY - dragOffset.y) + 'px';
+
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
+            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
+            
             const squares = board.getElementsByClassName('square');
             Array.from(squares).forEach(s => s.classList.remove('highlight'));
+            
             if (row >= 0 && row < 8 && col >= 0 && col < 8) {
                 const fromSquare = getSquareNotation(
                     parseInt(originalSquare.dataset.row),
                     parseInt(originalSquare.dataset.col)
                 );
                 const toSquare = getSquareNotation(row, col);
+                
                 try {
                     const testChess = new Chess(chess.fen());
                     if (testChess.move({from: fromSquare, to: toSquare, promotion: 'q'})) {
@@ -222,6 +352,7 @@
             const board = document.getElementById('board');
             const boardRect = board.getBoundingClientRect();
             const squareSize = boardRect.width / 8;
+            
             const col = Math.floor((e.clientX - boardRect.left) / squareSize);
             const row = Math.floor((e.clientY - boardRect.top) / squareSize);
 
@@ -252,13 +383,13 @@
                             isPlayerTurn = true;
                         }
                     } else {
-                        originalSquare.appendChild(draggedPiece);
+                        originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
                     }
                 } catch (e) {
-                    originalSquare.appendChild(draggedPiece);
+                    originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
                 }
             } else {
-                originalSquare.appendChild(draggedPiece);
+                originalSquare.querySelector('.piece-container').appendChild(draggedPiece);
             }
 
             if (draggedPiece.ghost) {
@@ -276,63 +407,10 @@
             const squares = board.getElementsByClassName('square');
             const position = fen.split(' ')[0];
             const rows = position.split('/');
+            
             Array.from(squares).forEach(square => {
-                const piece = square.querySelector('.piece');
-                if (piece) piece.remove();
-            });
-            rows.forEach((row, rowIndex) => {
-                let colIndex = 0;
-                for (const char of row) {
-                    if (isNaN(char)) {
-                        const square = squares[rowIndex * 8 + colIndex];
-                        const piece = document.createElement('img');
-                        piece.className = 'piece';
-                        piece.src = `piezas/${PIECES_SVG[char]}`;
-                        piece.draggable = false;
-                        square.appendChild(piece);
-                        colIndex++;
-                    } else {
-                        colIndex += parseInt(char);
-                    }
+                const pieceContainer = square.querySelector('.piece-container');
+                if (pieceContainer) {
+                    pieceContainer.innerHTML = '';
                 }
-            });
-        }
-
-        function loadExercise(index) {
-            if (index < 0 || index >= exercises.length) {
-                console.error('Índice de ejercicio inválido:', index);
-                return;
-            }
-            const exercise = exercises[index];
-            if (!exercise) {
-                console.error('No se encontró el ejercicio:', index);
-                return;
-            }
-            chess = new Chess();
-            chess.load(exercise.fen);
-            setPosition(chess.fen());
-            currentMoveIndex = 0;
-            isPlayerTurn = chess.turn() === 'w';
-            updateTurnIndicator();
-            showMessage(`Ejercicio ${index + 1} de ${exercises.length}`);
-            if (!isPlayerTurn) makeComputerMove();
-        }
-
-        createBoard();
-        loadPGNFile().catch(error => {
-            console.error('Error in initialization:', error);
-            showMessage('Error al inicializar el tablero', true);
-        });
-
-        document.addEventListener('mousedown', startDragging);
-        document.addEventListener('mousemove', updateDragPosition);
-        document.addEventListener('mouseup', stopDragging);
-        document.getElementById('prev').addEventListener('click', () => {
-            if (currentExercise > 0) {
-                currentExercise--;
-                loadExercise(currentExercise);
-            }
-        });
-        document.getElementById('next').addEventListener('click', () => {
-            if (currentExercise < exercises.length - 1) {
-                currentExercise
+            
