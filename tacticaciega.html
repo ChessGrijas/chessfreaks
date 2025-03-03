@@ -35,10 +35,16 @@
     }
     h1 { color: var(--primary-color); }
     .language-toggle { text-align: right; margin-bottom: 20px; }
-    .main-content { display: flex; gap: 30px; }
+    .main-content {
+      display: flex;
+      gap: 30px;
+    }
     .panel {
-      flex: 1; background-color: white; border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px;
+      flex: 1;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
     }
     .slider-container { margin-bottom: 20px; }
     .slider-container label { display: block; margin-bottom: 8px; font-weight: bold; }
@@ -47,8 +53,13 @@
     .dual-slider span { min-width: 50px; text-align: center; }
     button {
       background-color: var(--primary-color);
-      color: white; border: none; padding: 10px 15px;
-      border-radius: 4px; cursor: pointer; font-size: 16px; margin: 10px 0;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
     }
     button:hover { background-color: var(--secondary-color); }
     #board-container { display: none; }
@@ -64,35 +75,67 @@
     .moves-input { margin-bottom: 20px; }
     #turn-info { margin-bottom: 10px; font-weight: bold; }
     .moves-input input {
-      width: 100%; padding: 10px; border: 1px solid #ddd;
-      border-radius: 4px; font-size: 16px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
     }
     .move-row { display: flex; margin-bottom: 5px; }
     .move-number {
-      width: 50px; background-color: white; padding: 5px;
-      text-align: right; font-weight: bold; color: var(--black-text);
+      width: 50px;
+      background-color: white;
+      padding: 5px;
+      text-align: right;
+      font-weight: bold;
+      color: var(--black-text);
     }
     .move-white {
-      flex: 1; background-color: white; padding: 5px;
-      text-align: center; font-weight: bold; color: var(--black-text);
+      flex: 1;
+      background-color: white;
+      padding: 5px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--black-text);
     }
     .move-black {
-      flex: 1; background-color: black; padding: 5px;
-      text-align: center; font-weight: bold; color: var(--white-text);
+      flex: 1;
+      background-color: black;
+      padding: 5px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--white-text);
     }
     .success-message {
-      color: var(--success-color); font-weight: bold;
-      text-align: center; margin-top: 20px;
+      color: var(--success-color);
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
     }
     .error-message {
-      color: var(--error-color); font-weight: bold;
-      text-align: center; margin-top: 20px;
+      color: var(--error-color);
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
     }
     #instructions {
-      margin-top: 20px; font-size: 0.9em; color: var(--dark-text);
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: var(--dark-text);
     }
     #instructions ul { margin: 0; padding-left: 20px; }
     #instructions li { margin-bottom: 5px; }
+
+    /* Optimización para dispositivos móviles */
+    @media screen and (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+      .panel {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -102,6 +145,7 @@
       <button id="lang-toggle">English</button>
     </div>
     <div class="main-content">
+      <!-- Panel de configuración y tablero -->
       <div class="panel">
         <div class="slider-container">
           <label id="rating-label">Rango de rating</label>
@@ -136,6 +180,7 @@
           <a href="#" id="lichess-link" class="lichess-link" target="_blank">Ir a la posición en Lichess</a>
         </div>
       </div>
+      <!-- Caja de movimientos: se ubicará debajo del panel de configuración -->
       <div class="panel">
         <div class="moves-input">
           <label id="moves-label" for="move-input">Introduce tu movimiento:</label>
@@ -147,10 +192,11 @@
         <button id="new-puzzle-btn" style="display: none;">Buscar otra posición</button>
       </div>
     </div>
+    <!-- Bloque de instrucciones (se muestra al final) -->
     <div id="instructions"></div>
   </div>
   <script>
-    // Funciones y variables globales
+    // Variables globales
     let currentLanguage = "es";
     let puzzleData = [];
     let currentPuzzle = null;
@@ -269,6 +315,7 @@
       elements.feedbackMessage.style.display = "none";
       elements.feedbackMessage.textContent = "";
       elements.moveInput.placeholder = lang.moveInputPlaceholder;
+      elements.newPuzzleBtn.textContent = lang.newPuzzleBtn; // Actualiza el texto del botón según el idioma
       elements.instructions.innerHTML = instructionsTexts[currentLanguage];
       updateTurnInfo();
       updateMoveDisplay();
@@ -400,116 +447,57 @@
     }
 
     // Funciones para movimientos:
-function formatMove(move) {
-  if (!move) return "";
-  
-  // Eliminar símbolos de jaque y mate para la visualización
-  move = move.replace(/[\+\#]/g, "");
-  
-  if (currentLanguage === "es") {
-    const pieceMapping = { "K": "R", "Q": "D", "R": "T", "B": "A", "N": "C" };
-    
-    // Manejar capturas
-    if (move.includes("x")) {
-      let [pre, post] = move.split("x");
-      
-      // Si la primera parte es una pieza
-      let firstChar = pre.charAt(0);
-      if (/[KQRBN]/.test(firstChar)) {
-        pre = pieceMapping[firstChar] + pre.slice(1);
+    function formatMove(move) {
+      if (!move) return "";
+      move = move.replace(/[\+\#]/g, "");
+      if (currentLanguage === "es") {
+        const pieceMapping = { "K": "R", "Q": "D", "R": "T", "B": "A", "N": "C" };
+        let firstChar = move.charAt(0);
+        if (move.includes("x")) {
+          let [pre, post] = move.split("x");
+          if (/[KQRBN]/.test(pre)) {
+            pre = pieceMapping[pre] + pre.slice(1);
+          }
+          return pre + "x" + post;
+        }
+        if (/[KQRBN]/.test(firstChar)) {
+          return pieceMapping[firstChar] + move.slice(1);
+        }
       }
-      
-      return pre + "x" + post;
+      return move;
     }
-    
-    // Verificar si comienza con pieza
-    let firstChar = move.charAt(0);
-    if (/[KQRBN]/.test(firstChar)) {
-      return pieceMapping[firstChar] + move.slice(1);
-    }
-  }
-  
-  return move;
-}
 
     function normalizeUserMove(move) {
-  // Eliminar espacios y símbolos de jaque y mate
-  move = move.trim().replace(/\s+/g, "").replace(/[\+\#]/g, "");
-  
-  // Caso especial para promociones
-  if (move.includes("=")) {
-    let [mainPart, promoPart] = move.split("=");
-    let promo = promoPart.trim().toUpperCase();
-    
-    // Mapeo para piezas en español
-    if (currentLanguage === "es") {
-      const mapping = { "R": "K", "D": "Q", "T": "R", "A": "B", "C": "N" };
-      
-      // Convertir pieza de promoción si está en español
-      if (mapping[promo.charAt(0)]) {
-        promo = mapping[promo.charAt(0)];
-      }
-      
-      // Revisar si hay una pieza en la primera parte (para casos como axb8=D)
-      if (mainPart.includes("x")) {
-        let [piece, target] = mainPart.split("x");
-        if (piece.length > 1 || (piece.length === 1 && /[RDTAC]/i.test(piece))) {
-          // Si la primera letra es mayúscula en español, convertirla
-          let firstChar = piece.charAt(0);
-          if (/[RDTAC]/.test(firstChar)) {
-            piece = mapping[firstChar] + piece.slice(1);
+      move = move.trim().replace(/\s+/g, "").replace(/[\+\#]/g, "");
+      if (move.includes("=")) {
+        let [mainPart, promoPart] = move.split("=");
+        let promo = promoPart.trim().toUpperCase();
+        if (currentLanguage === "es") {
+          const mapping = { "R": "K", "D": "Q", "T": "R", "A": "B", "C": "N" };
+          if (mapping[promo.charAt(0)]) {
+            promo = mapping[promo.charAt(0)];
           }
-          mainPart = piece + "x" + target;
+          const spanishPieces = ["R", "D", "T", "A", "C"];
+          if (spanishPieces.includes(mainPart.charAt(0).toUpperCase())) {
+            mainPart = mapping[mainPart.charAt(0).toUpperCase()] + mainPart.slice(1);
+          }
         }
-      } else if (/^[RDTAC]/i.test(mainPart)) {
-        // Si comienza con una pieza en español
-        let firstChar = mainPart.charAt(0);
-        if (/[RDTAC]/.test(firstChar)) {
-          mainPart = mapping[firstChar] + mainPart.slice(1);
+        return (mainPart + "=" + promo).toLowerCase();
+      } else {
+        let firstChar = move.charAt(0);
+        const spanishPieces = ["R", "D", "T", "A", "C"];
+        if (currentLanguage === "es" && spanishPieces.includes(firstChar)) {
+          const mapping = { "R": "K", "D": "Q", "T": "R", "A": "B", "C": "N" };
+          return (mapping[firstChar] || firstChar) + move.slice(1).toLowerCase();
+        } else {
+          return move.toLowerCase();
         }
       }
     }
-    
-    return (mainPart + "=" + promo).toLowerCase();
-  } else {
-    // Para movimientos sin promoción
-    
-    // Manejar capturas (incluyen 'x')
-    if (move.includes("x")) {
-      let [piece, target] = move.split("x");
-      
-      if (currentLanguage === "es") {
-        const mapping = { "R": "K", "D": "Q", "T": "R", "A": "B", "C": "N" };
-        
-        // Si la primera letra es mayúscula en español, convertirla
-        let firstChar = piece.charAt(0);
-        if (/[RDTAC]/.test(firstChar)) {
-          piece = mapping[firstChar] + piece.slice(1);
-        }
-      }
-      
-      return (piece + "x" + target).toLowerCase();
-    }
-    
-    // Movimientos normales
-    let firstChar = move.charAt(0);
-    
-    if (currentLanguage === "es") {
-      const mapping = { "R": "K", "D": "Q", "T": "R", "A": "B", "C": "N" };
-      
-      // Convertir primera letra si es una pieza española
-      if (/[RDTAC]/.test(firstChar)) {
-        move = mapping[firstChar] + move.slice(1);
-      }
-    }
-    
-    return move.toLowerCase();
-  }
-}
 
-function normalizeExpectedMove(move) {
-  return move.trim().replace(/\s+/g, "").replace(/[\+\#]/g, "").toLowerCase();
-}
+    function normalizeExpectedMove(move) {
+      return move.trim().replace(/\s+/g, "").replace(/[\+\#]/g, "").toLowerCase();
+    }
 
     function updateMoveDisplay() {
       if (!currentPuzzle) return;
@@ -655,49 +643,40 @@ function normalizeExpectedMove(move) {
     }
 
     function handleMoveSubmit() {
-  if (!currentPuzzle || currentMoveIndex >= moveSequence.length) return;
-  
-  const userMove = elements.moveInput.value;
-  if (!userMove) return;
-  
-  const expectedMove = moveSequence[currentMoveIndex];
-  
-  // Comparar movimiento normalizado del usuario con el movimiento esperado normalizado
-  const normalizedUserMove = normalizeUserMove(userMove);
-  const normalizedExpectedMove = normalizeExpectedMove(expectedMove);
-  
-  console.log("User move:", userMove, "->", normalizedUserMove);
-  console.log("Expected move:", expectedMove, "->", normalizedExpectedMove);
-  
-  if (normalizedUserMove === normalizedExpectedMove) {
-    errorMove = null;
-    elements.feedbackMessage.style.display = "none";
-    
-    // Guardar el movimiento original del usuario en la secuencia de movimientos
-    moveSequence[currentMoveIndex] = userMove;
-    
-    currentMoveIndex++;
-    updateMoveDisplay();
-    elements.moveInput.value = "";
-    
-    if (currentMoveIndex < moveSequence.length) {
-      setTimeout(() => {
+      if (!currentPuzzle || currentMoveIndex >= moveSequence.length) return;
+      const userMove = elements.moveInput.value;
+      if (!userMove) return;
+      const expectedMove = moveSequence[currentMoveIndex];
+      const normalizedUserMove = normalizeUserMove(userMove);
+      const normalizedExpectedMove = normalizeExpectedMove(expectedMove);
+      console.log("User move:", userMove, "->", normalizedUserMove);
+      console.log("Expected move:", expectedMove, "->", normalizedExpectedMove);
+      if (normalizedUserMove === normalizedExpectedMove) {
+        errorMove = null;
+        elements.feedbackMessage.style.display = "none";
+        // Guardar el movimiento original del usuario
+        moveSequence[currentMoveIndex] = userMove;
         currentMoveIndex++;
         updateMoveDisplay();
-        elements.moveInput.focus();
-        checkPuzzleCompletion();
-      }, 500);
-    } else {
-      checkPuzzleCompletion();
+        elements.moveInput.value = "";
+        if (currentMoveIndex < moveSequence.length) {
+          setTimeout(() => {
+            currentMoveIndex++;
+            updateMoveDisplay();
+            elements.moveInput.focus();
+            checkPuzzleCompletion();
+          }, 500);
+        } else {
+          checkPuzzleCompletion();
+        }
+      } else {
+        errorMove = userMove;
+        elements.feedbackMessage.textContent = translations[currentLanguage].errorMessage;
+        elements.feedbackMessage.className = "error-message";
+        elements.feedbackMessage.style.display = "block";
+        updateMoveDisplay();
+      }
     }
-  } else {
-    errorMove = userMove; // Mostrar exactamente lo que introdujo el usuario
-    elements.feedbackMessage.textContent = translations[currentLanguage].errorMessage;
-    elements.feedbackMessage.className = "error-message";
-    elements.feedbackMessage.style.display = "block";
-    updateMoveDisplay();
-  }
-}
 
     function checkPuzzleCompletion() {
       if (currentMoveIndex >= moveSequence.length) {
