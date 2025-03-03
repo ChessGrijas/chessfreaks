@@ -6,6 +6,10 @@
   <title>Táctica a la ciega</title>
   <!-- Cargar PapaParse -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <!-- Cargar noUiSlider y wNumb para el slider dual -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wnumb/1.2.0/wNumb.min.js"></script>
   <style>
     :root {
       --primary-color: #3b5998;
@@ -35,21 +39,34 @@
     }
     h1 { color: var(--primary-color); }
     .language-toggle { text-align: right; margin-bottom: 20px; }
-    /* Por defecto, la disposición es en fila */
+    /* Por defecto, en pantallas grandes se muestran en fila */
     .main-content { display: flex; gap: 30px; }
     .panel {
-      flex: 1; background-color: white; border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px;
+      flex: 1; 
+      background-color: white; 
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+      padding: 20px;
     }
     .slider-container { margin-bottom: 20px; }
     .slider-container label { display: block; margin-bottom: 8px; font-weight: bold; }
-    .dual-slider { display: flex; align-items: center; gap: 10px; }
-    .dual-slider input { flex: 1; }
-    .dual-slider span { min-width: 50px; text-align: center; }
+    /* Los contenedores para los sliders duales */
+    #rating-slider, #pieces-slider {
+      margin: 10px 0;
+    }
+    .slider-values {
+      text-align: center;
+      font-weight: bold;
+    }
     button {
       background-color: var(--primary-color);
-      color: white; border: none; padding: 10px 15px;
-      border-radius: 4px; cursor: pointer; font-size: 16px; margin: 10px 0;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
     }
     button:hover { background-color: var(--secondary-color); }
     #board-container { display: none; }
@@ -95,11 +112,9 @@
     #instructions ul { margin: 0; padding-left: 20px; }
     #instructions li { margin-bottom: 5px; }
     
-    /* Optimización para móviles */
+    /* Para dispositivos móviles: disposición vertical */
     @media screen and (max-width: 768px) {
-      .main-content {
-        flex-direction: column;
-      }
+      .main-content { flex-direction: column; }
     }
   </style>
 </head>
@@ -112,21 +127,21 @@
     <div class="main-content">
       <!-- Panel de configuración y tablero -->
       <div class="panel">
+        <!-- Slider para Rating -->
         <div class="slider-container">
           <label id="rating-label">Rango de rating</label>
-          <div class="dual-slider">
-            <span id="min-rating-display">399</span>
-            <input type="range" id="min-rating" min="399" max="3308" value="399" />
-            <input type="range" id="max-rating" min="399" max="3308" value="1000" />
+          <div id="rating-slider"></div>
+          <div class="slider-values">
+            <span id="min-rating-display">399</span> - 
             <span id="max-rating-display">1000</span>
           </div>
         </div>
+        <!-- Slider para Número de Piezas -->
         <div class="slider-container">
           <label id="pieces-label">Número de piezas</label>
-          <div class="dual-slider">
-            <span id="min-pieces-display">4</span>
-            <input type="range" id="min-pieces" min="4" max="12" value="4" />
-            <input type="range" id="max-pieces" min="4" max="12" value="6" />
+          <div id="pieces-slider"></div>
+          <div class="slider-values">
+            <span id="min-pieces-display">4</span> - 
             <span id="max-pieces-display">6</span>
           </div>
         </div>
@@ -145,7 +160,7 @@
           <a href="#" id="lichess-link" class="lichess-link" target="_blank">Ir a la posición en Lichess</a>
         </div>
       </div>
-      <!-- Panel de movimientos: Se ubica debajo del de configuración -->
+      <!-- Panel de movimientos: se coloca debajo del de configuración -->
       <div class="panel">
         <div class="moves-input">
           <label id="moves-label" for="move-input">Introduce tu movimiento:</label>
@@ -161,7 +176,7 @@
     <div id="instructions"></div>
   </div>
   <script>
-    // Variables globales y funciones (sin cambios en lógica de idioma)
+    // Variables globales y funciones de manejo (sin cambios en lógica de idioma)
     let currentLanguage = "es";
     let puzzleData = [];
     let currentPuzzle = null;
@@ -251,10 +266,6 @@
       errorMessage: document.getElementById("error-message"),
       modalClose: document.getElementById("modal-close"),
       errorModal: document.getElementById("error-modal"),
-      minRating: document.getElementById("min-rating"),
-      maxRating: document.getElementById("max-rating"),
-      minPieces: document.getElementById("min-pieces"),
-      maxPieces: document.getElementById("max-pieces"),
       minRatingDisplay: document.getElementById("min-rating-display"),
       maxRatingDisplay: document.getElementById("max-rating-display"),
       minPiecesDisplay: document.getElementById("min-pieces-display"),
@@ -265,6 +276,44 @@
       boardContainer: document.getElementById("board-container"),
       instructions: document.getElementById("instructions")
     };
+
+    // Inicialización de los sliders duales usando noUiSlider
+    let ratingSlider, piecesSlider;
+
+    function initSliders() {
+      // Slider para Rating
+      ratingSlider = document.getElementById("rating-slider");
+      noUiSlider.create(ratingSlider, {
+        start: [399, 1000],
+        connect: true,
+        range: {
+          min: 399,
+          max: 3308
+        },
+        format: wNumb({ decimals: 0 })
+      });
+      ratingSlider.noUiSlider.on('update', function (values) {
+        elements.minRatingDisplay.textContent = values[0];
+        elements.maxRatingDisplay.textContent = values[1];
+      });
+
+      // Slider para Número de Piezas
+      piecesSlider = document.getElementById("pieces-slider");
+      noUiSlider.create(piecesSlider, {
+        start: [4, 6],
+        connect: true,
+        step: 1,
+        range: {
+          min: 4,
+          max: 12
+        },
+        format: wNumb({ decimals: 0 })
+      });
+      piecesSlider.noUiSlider.on('update', function (values) {
+        elements.minPiecesDisplay.textContent = values[0];
+        elements.maxPiecesDisplay.textContent = values[1];
+      });
+    }
 
     function updateUILanguage() {
       const lang = translations[currentLanguage];
@@ -280,7 +329,7 @@
       elements.feedbackMessage.style.display = "none";
       elements.feedbackMessage.textContent = "";
       elements.moveInput.placeholder = lang.moveInputPlaceholder;
-      elements.newPuzzleBtn.textContent = lang.newPuzzleBtn; // Actualiza el texto del botón
+      elements.newPuzzleBtn.textContent = lang.newPuzzleBtn;
       elements.instructions.innerHTML = instructionsTexts[currentLanguage];
       updateTurnInfo();
       updateMoveDisplay();
@@ -411,7 +460,7 @@
       elements.boardContainer.style.display = "block";
     }
 
-    // Funciones para movimientos:
+    // Funciones para movimientos (se mantiene la lógica actual)
     function formatMove(move) {
       if (!move) return "";
       move = move.replace(/[\+\#]/g, "");
@@ -579,10 +628,13 @@
       if (!puzzleData || puzzleData.length === 0) {
         loadDemoData();
       }
-      const minRating = parseInt(elements.minRating.value);
-      const maxRating = parseInt(elements.maxRating.value);
-      const minPieces = parseInt(elements.minPieces.value);
-      const maxPieces = parseInt(elements.maxPieces.value);
+      // Obtener los valores de los sliders usando noUiSlider
+      const ratingValues = ratingSlider.noUiSlider.get();
+      const piecesValues = piecesSlider.noUiSlider.get();
+      const minRating = parseInt(ratingValues[0]);
+      const maxRating = parseInt(ratingValues[1]);
+      const minPieces = parseInt(piecesValues[0]);
+      const maxPieces = parseInt(piecesValues[1]);
       const filtered = puzzleData.filter(puzzle =>
         puzzle.Rating >= minRating &&
         puzzle.Rating <= maxRating &&
@@ -656,6 +708,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+      // Inicializar sliders duales
+      initSliders();
       loadData();
       setTimeout(() => { if (!currentPuzzle) startNewPuzzle(); }, 2000);
       elements.langToggle.addEventListener("click", toggleLanguage);
@@ -663,38 +717,6 @@
       elements.newPuzzleBtn.addEventListener("click", startNewPuzzle);
       elements.moveInput.addEventListener("keydown", function(e) {
         if (e.key === "Enter") { handleMoveSubmit(); }
-      });
-      elements.minRating.addEventListener("input", function() {
-        const val = parseInt(this.value);
-        elements.minRatingDisplay.textContent = val;
-        if (val > parseInt(elements.maxRating.value)) {
-          elements.maxRating.value = val;
-          elements.maxRatingDisplay.textContent = val;
-        }
-      });
-      elements.maxRating.addEventListener("input", function() {
-        const val = parseInt(this.value);
-        elements.maxRatingDisplay.textContent = val;
-        if (val < parseInt(elements.minRating.value)) {
-          elements.minRating.value = val;
-          elements.minRatingDisplay.textContent = val;
-        }
-      });
-      elements.minPieces.addEventListener("input", function() {
-        const val = parseInt(this.value);
-        elements.minPiecesDisplay.textContent = val;
-        if (val > parseInt(elements.maxPieces.value)) {
-          elements.maxPieces.value = val;
-          elements.maxPiecesDisplay.textContent = val;
-        }
-      });
-      elements.maxPieces.addEventListener("input", function() {
-        const val = parseInt(this.value);
-        elements.maxPiecesDisplay.textContent = val;
-        if (val < parseInt(elements.minPieces.value)) {
-          elements.minPieces.value = val;
-          elements.minPiecesDisplay.textContent = val;
-        }
       });
       updateUILanguage();
     });
