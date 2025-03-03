@@ -302,7 +302,31 @@
       updateUILanguage();
     }
 
-    
+    async function loadData() {
+      try {
+        const response = await fetch("0tactica.csv");
+        const csvData = await response.text();
+        Papa.parse(csvData, {
+          header: true,
+          dynamicTyping: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            puzzleData = results.data;
+            console.log(`Loaded ${puzzleData.length} puzzles`);
+            startNewPuzzle();
+          },
+          error: function(err) {
+            console.error("Error parsing CSV: ", err);
+            loadDemoData();
+            startNewPuzzle();
+          }
+        });
+      } catch (error) {
+        console.error("Error loading CSV file: ", error);
+        loadDemoData();
+        startNewPuzzle();
+      }
+    }
 
     function loadDemoData() {
       puzzleData = [{
